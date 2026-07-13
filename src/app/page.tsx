@@ -1,53 +1,205 @@
-import Link from "next/link";
+const extensionIdeas = [
+	"tab timer",
+	"bookmark pet",
+	"homework blocker",
+	"site restyler",
+];
 
-import { LatestPost } from "~/app/_components/post";
-import { api, HydrateClient } from "~/trpc/server";
+const perks = [
+	{
+		title: "1. make an extension",
+		body: "content scripts, popup buttons, tiny tools, silly web powers. ship one thing that changes how a browser feels.",
+	},
+	{
+		title: "2. post the demo",
+		body: "show the manifest, the popup, and the thing it changes. Hack Club should be able to see it working.",
+	},
+	{
+		title: "3. get browser merch",
+		body: "Barnav sends browser-flavored rewards when your extension makes it onto the web.",
+	},
+];
 
-export default async function Home() {
-	const hello = await api.post.hello({ text: "from tRPC" });
+const toolbarItems = ["Back", "Forward", "Refresh", "Home", "Mail"];
 
-	void api.post.getLatest.prefetch();
-
+export default function Home() {
 	return (
-		<HydrateClient>
-			<main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-				<div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-					<h1 className="font-extrabold text-5xl tracking-tight sm:text-[5rem]">
-						Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
-					</h1>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-						<Link
-							className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-							href="https://create.t3.gg/en/usage/first-steps"
-							target="_blank"
-						>
-							<h3 className="font-bold text-2xl">First Steps →</h3>
-							<div className="text-lg">
-								Just the basics - Everything you need to know to set up your
-								database and authentication.
+		<main className="retro-desktop min-h-screen overflow-hidden p-2 text-[#050505] sm:p-5">
+			<div className="mx-auto max-w-7xl">
+				<div className="retro-window">
+					<header>
+						<div className="title-bar">
+							<div className="flex min-w-0 items-center gap-2">
+								<span className="app-icon">W</span>
+								<span className="truncate font-bold">
+									Widget Explorer - Hack Club Browser Challenge
+								</span>
 							</div>
-						</Link>
-						<Link
-							className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-							href="https://create.t3.gg/en/introduction"
-							target="_blank"
-						>
-							<h3 className="font-bold text-2xl">Documentation →</h3>
-							<div className="text-lg">
-								Learn more about Create T3 App, the libraries it uses, and how
-								to deploy it.
+							<div aria-hidden="true" className="window-controls">
+								<span>_</span>
+								<span>□</span>
+								<span>x</span>
 							</div>
-						</Link>
-					</div>
-					<div className="flex flex-col items-center gap-2">
-						<p className="text-2xl text-white">
-							{hello ? hello.greeting : "Loading tRPC query..."}
-						</p>
-					</div>
+						</div>
 
-					<LatestPost />
+						<div className="menu-row">
+							<span>File</span>
+							<span>Edit</span>
+							<span>View</span>
+							<span>Favorites</span>
+							<span>Tools</span>
+							<span>Help</span>
+						</div>
+
+						<div className="toolbar-row">
+							{toolbarItems.map((item) => (
+								<button className="toolbar-button" key={item} type="button">
+									<span className="toolbar-icon" />
+									{item}
+								</button>
+							))}
+						</div>
+
+						<div className="address-row">
+							<span className="shrink-0">Address</span>
+							<div className="address-box">
+								<span className="address-lock">★</span>
+								<span className="truncate">
+									https://hackclub.com/widget/you-ship-we-ship
+								</span>
+							</div>
+							<button className="go-button" type="button">
+								Go
+							</button>
+						</div>
+					</header>
+
+					<section className="page-scroll">
+						<div className="marquee-strip">
+							<div className="marquee-track">
+								Widget is loading rewards... make browser extensions... get
+								browser merch... powered by Hack Club... built by Barnav...
+							</div>
+						</div>
+
+						<div className="hero-grid">
+							<div className="hero-copy">
+								<div className="badge-2000">
+									<span className="blink-dot" />
+									now accepting extensions
+								</div>
+								<h1>
+									You ship.
+									<br />
+									We ship.
+								</h1>
+								<p>
+									Widget is a Hack Club challenge by Barnav about making the
+									browser weird, useful, personal, and yours. Build a real
+									browser extension, publish a demo, and earn browser merch.
+								</p>
+								<div className="hero-actions">
+									<a className="primary-retro" href="https://hackclub.com">
+										Start building
+									</a>
+									<a className="secondary-retro" href="#steps">
+										How it works
+									</a>
+								</div>
+							</div>
+
+							<div className="install-window">
+								<div className="mini-title">
+									<span>Widget Setup Wizard</span>
+									<span>x</span>
+								</div>
+								<div className="install-body">
+									<div aria-hidden="true" className="cd-spin">
+										W
+									</div>
+									<div>
+										<h2>Install browser superpowers?</h2>
+										<p>
+											Make a popup, modify a page, add a toolbar button, then
+											ship it for merch.
+										</p>
+									</div>
+									<div
+										aria-label="Extension progress"
+										aria-valuemax={100}
+										aria-valuemin={0}
+										aria-valuenow={72}
+										className="progress-shell"
+										role="progressbar"
+									>
+										<div className="progress-bar" />
+									</div>
+									<div className="wizard-buttons">
+										<button type="button">Back</button>
+										<button type="button">Next</button>
+										<button type="button">Cancel</button>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<ul aria-label="Extension ideas" className="idea-strip">
+							{extensionIdeas.map((idea) => (
+								<li className="idea-chip" key={idea}>
+									<span className="tiny-window" />
+									{idea}
+								</li>
+							))}
+						</ul>
+
+						<div className="content-grid" id="steps">
+							<section className="retro-panel">
+								<div className="panel-title">Widget shipping checklist</div>
+								<div className="panel-body">
+									{perks.map((perk) => (
+										<article className="check-row" key={perk.title}>
+											<div className="checkbox-fake" />
+											<div>
+												<h2>{perk.title}</h2>
+												<p>{perk.body}</p>
+											</div>
+										</article>
+									))}
+								</div>
+							</section>
+
+							<aside className="retro-panel">
+								<div className="panel-title">Extension preview</div>
+								<div className="panel-body">
+									<div className="extension-card">
+										<div className="extension-top">
+											<div className="extension-logo">W</div>
+											<div>
+												<strong>Widget Helper</strong>
+												<p>active on this tab</p>
+											</div>
+										</div>
+										<div className="code-lines">
+											<span />
+											<span />
+											<span />
+										</div>
+										<div className="status-callout">
+											ship detected: popup + content script + icon
+										</div>
+									</div>
+								</div>
+							</aside>
+						</div>
+					</section>
+
+					<footer className="status-bar">
+						<span>Done</span>
+						<span>Internet zone</span>
+						<span>Widget merch connection: online</span>
+					</footer>
 				</div>
-			</main>
-		</HydrateClient>
+			</div>
+		</main>
 	);
 }
