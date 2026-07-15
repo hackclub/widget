@@ -1,12 +1,15 @@
 "use client";
 
 import {
+	type FormEvent,
 	type PointerEvent,
 	useCallback,
 	useEffect,
 	useRef,
 	useState,
 } from "react";
+
+import { api } from "~/trpc/react";
 
 type WindowDragStart = {
 	pointerX: number;
@@ -15,14 +18,24 @@ type WindowDragStart = {
 	windowY: number;
 };
 
-type BrowserTab = "widget" | "guides" | "shop";
-type DemoIdea = "extension" | "desktop" | "clippy";
+type BrowserTab = "widget" | "guides" | "shop" | "platform";
+type ProjectStatus = "draft" | "submitted";
 
 type PrizeCard = {
 	category: string;
 	title: string;
 	detail: string;
 	hours: number;
+};
+
+type ProjectFormState = {
+	codebaseUrl: string;
+	description: string;
+	hackClubInfo: string;
+	name: string;
+	playableUrl: string;
+	screenshotUrl: string;
+	status: ProjectStatus;
 };
 
 const ideas = [
@@ -190,12 +203,6 @@ const addressBarMessages = [
 	"Typing privileges revoked by the Widget council.",
 ];
 
-const nyanBeat = 0.11;
-const nyanMelody = [
-	659.25, 739.99, 830.61, 987.77, 830.61, 739.99, 659.25, 554.37, 659.25,
-	739.99, 830.61, 739.99, 659.25, 554.37, 493.88, 554.37,
-];
-
 const guideTracks = [
 	{
 		title: "Set up",
@@ -245,19 +252,38 @@ const footerLinks = [
 	},
 ];
 
-const demoIdeas: Array<{ id: DemoIdea; label: string }> = [
-	{ id: "extension", label: "Extension" },
-	{ id: "desktop", label: "Desktop widget" },
-	{ id: "clippy", label: "Helper" },
-];
+const emptyProjectForm: ProjectFormState = {
+	codebaseUrl: "",
+	description: "",
+	hackClubInfo: "",
+	name: "",
+	playableUrl: "",
+	screenshotUrl: "",
+	status: "draft",
+};
 
 export default function Home() {
+	const utils = api.useUtils();
+	const sessionQuery = api.auth.me.useQuery();
+	const session = sessionQuery.data;
+	const projectsQuery = api.projects.listMine.useQuery(undefined, {
+		enabled: Boolean(session),
+	});
+	const createProject = api.projects.create.useMutation({
+		onSuccess: async () => {
+			setProjectForm(emptyProjectForm);
+			await utils.projects.listMine.invalidate();
+		},
+	});
 	const [activeTab, setActiveTab] = useState<BrowserTab>("widget");
-	const [activeDemoIdea, setActiveDemoIdea] = useState<DemoIdea>("extension");
+	const [projectForm, setProjectForm] =
+		useState<ProjectFormState>(emptyProjectForm);
 	const [isGuidesTabOpen, setIsGuidesTabOpen] = useState(false);
 	const [isGuidesTabClosing, setIsGuidesTabClosing] = useState(false);
 	const [isShopTabOpen, setIsShopTabOpen] = useState(false);
 	const [isShopTabClosing, setIsShopTabClosing] = useState(false);
+	const [isPlatformTabOpen, setIsPlatformTabOpen] = useState(false);
+	const [isPlatformTabClosing, setIsPlatformTabClosing] = useState(false);
 	const [ideaIndex, setIdeaIndex] = useState(0);
 	const [addressMessage, setAddressMessage] = useState<string | null>(null);
 	const [addressMessageIndex, setAddressMessageIndex] = useState(0);
@@ -268,8 +294,7 @@ export default function Home() {
 	const windowRef = useRef<HTMLDivElement>(null);
 	const windowPositionRef = useRef({ x: 0, y: 0 });
 	const addressTakeoverTimeout = useRef<number | null>(null);
-	const nyanAudioContext = useRef<AudioContext | null>(null);
-	const nyanLoopInterval = useRef<number | null>(null);
+	const nyanAudioRef = useRef<HTMLAudioElement | null>(null);
 	const idea = ideas[ideaIndex] ?? ideas[0];
 	const prizeStack = prizeCards.slice(0, visiblePrizeCardCount);
 	const dragStartRef = useRef<WindowDragStart | null>(null);
@@ -280,14 +305,21 @@ export default function Home() {
 	const addressByTab: Record<BrowserTab, string> = {
 		widget: "https://widget.hackclub.com",
 		guides: "https://widget.hackclub.com/guides",
+		platform: "https://widget.hackclub.com/platform",
 		shop: "https://widget.hackclub.com/shop",
 	};
 	const address = addressByTab[activeTab];
 	const shouldShowTabBar =
-		isGuidesTabOpen || isGuidesTabClosing || isShopTabOpen || isShopTabClosing;
+		isGuidesTabOpen ||
+		isGuidesTabClosing ||
+		isShopTabOpen ||
+		isShopTabClosing ||
+		isPlatformTabOpen ||
+		isPlatformTabClosing;
 	const isTabBarClosing =
-		(isGuidesTabClosing && !isShopTabOpen) ||
-		(isShopTabClosing && !isGuidesTabOpen);
+		(isGuidesTabClosing && !isShopTabOpen && !isPlatformTabOpen) ||
+		(isShopTabClosing && !isGuidesTabOpen && !isPlatformTabOpen) ||
+		(isPlatformTabClosing && !isGuidesTabOpen && !isShopTabOpen);
 
 	useEffect(() => {
 		if (addressMessage || hasAddressEdit) {
@@ -296,6 +328,16 @@ export default function Home() {
 
 		setAddressInput(address);
 	}, [address, addressMessage, hasAddressEdit]);
+
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+
+		if (params.get("platform") === "1") {
+			setIsPlatformTabClosing(false);
+			setIsPlatformTabOpen(true);
+			setActiveTab("platform");
+		}
+	}, []);
 
 	useEffect(() => {
 		if (!addressMessage) {
@@ -316,14 +358,9 @@ export default function Home() {
 				window.clearTimeout(addressTakeoverTimeout.current);
 			}
 
-			if (nyanLoopInterval.current) {
-				window.clearInterval(nyanLoopInterval.current);
-				nyanLoopInterval.current = null;
-			}
-
-			if (nyanAudioContext.current) {
-				void nyanAudioContext.current.close();
-				nyanAudioContext.current = null;
+			if (nyanAudioRef.current) {
+				nyanAudioRef.current.pause();
+				nyanAudioRef.current = null;
 			}
 
 			if (alreadyHereTimeout.current) {
@@ -357,6 +394,19 @@ export default function Home() {
 
 		return () => window.clearTimeout(closeTab);
 	}, [isShopTabClosing]);
+
+	useEffect(() => {
+		if (!isPlatformTabClosing) {
+			return;
+		}
+
+		const closeTab = window.setTimeout(() => {
+			setIsPlatformTabOpen(false);
+			setIsPlatformTabClosing(false);
+		}, 180);
+
+		return () => window.clearTimeout(closeTab);
+	}, [isPlatformTabClosing]);
 
 	function startDrag(event: PointerEvent<HTMLDivElement>) {
 		if (event.button !== 0) {
@@ -456,6 +506,17 @@ export default function Home() {
 		setActiveTab("widget");
 	}
 
+	function openPlatformTab() {
+		setIsPlatformTabClosing(false);
+		setIsPlatformTabOpen(true);
+		setActiveTab("platform");
+	}
+
+	function closePlatformTab() {
+		setIsPlatformTabClosing(true);
+		setActiveTab("widget");
+	}
+
 	function editAddress(value: string) {
 		setAddressMessage(null);
 		setAddressInput(value);
@@ -470,62 +531,23 @@ export default function Home() {
 		}, 900);
 	}
 
-	function playNyanNote(
-		context: AudioContext,
-		frequency: number,
-		startAt: number,
-		duration: number,
-	) {
-		const oscillator = context.createOscillator();
-		const gain = context.createGain();
-
-		oscillator.type = "square";
-		oscillator.frequency.setValueAtTime(frequency, startAt);
-		gain.gain.setValueAtTime(0.0001, startAt);
-		gain.gain.linearRampToValueAtTime(0.045, startAt + 0.012);
-		gain.gain.setValueAtTime(0.045, startAt + duration * 0.72);
-		gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
-
-		oscillator.connect(gain);
-		gain.connect(context.destination);
-		oscillator.start(startAt);
-		oscillator.stop(startAt + duration);
-	}
-
-	function scheduleNyanLoop(context: AudioContext, startAt: number) {
-		nyanMelody.forEach((frequency, index) => {
-			playNyanNote(context, frequency, startAt + index * nyanBeat, nyanBeat);
-		});
-
-		return nyanMelody.length * nyanBeat;
-	}
-
 	function stopNyanSound() {
-		if (nyanLoopInterval.current) {
-			window.clearInterval(nyanLoopInterval.current);
-			nyanLoopInterval.current = null;
-		}
-
-		if (nyanAudioContext.current) {
-			void nyanAudioContext.current.close();
-			nyanAudioContext.current = null;
+		if (nyanAudioRef.current) {
+			nyanAudioRef.current.pause();
+			nyanAudioRef.current.currentTime = 0;
 		}
 	}
 
 	function startNyanSound() {
 		stopNyanSound();
 
-		const context = new AudioContext();
-		nyanAudioContext.current = context;
+		if (!nyanAudioRef.current) {
+			const audio = new Audio("/nyan-cat.mp3");
+			audio.loop = true;
+			nyanAudioRef.current = audio;
+		}
 
-		const loopLength = scheduleNyanLoop(context, context.currentTime + 0.02);
-		nyanLoopInterval.current = window.setInterval(() => {
-			const currentContext = nyanAudioContext.current;
-
-			if (currentContext) {
-				scheduleNyanLoop(currentContext, currentContext.currentTime + 0.02);
-			}
-		}, loopLength * 1000);
+		void nyanAudioRef.current.play();
 	}
 
 	const dismissAlreadyHere = useCallback(() => {
@@ -578,6 +600,21 @@ export default function Home() {
 		setIsEasterEggOpen((current) => !current);
 	}
 
+	function updateProjectForm<Field extends keyof ProjectFormState>(
+		field: Field,
+		value: ProjectFormState[Field],
+	) {
+		setProjectForm((current) => ({
+			...current,
+			[field]: value,
+		}));
+	}
+
+	function submitProject(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		createProject.mutate(projectForm);
+	}
+
 	return (
 		<main className="retro-desktop min-h-screen overflow-hidden p-3 text-[#050505] sm:p-6">
 			<nav aria-label="Wonderous OS apps" className="desktop-icons">
@@ -593,10 +630,10 @@ export default function Home() {
 					<span>$</span>
 					Shop
 				</button>
-				<div>
+				<button onClick={openPlatformTab} type="button">
 					<span>↗</span>
 					Ship
-				</div>
+				</button>
 			</nav>
 
 			<div className="os-shell mx-auto max-w-7xl">
@@ -680,6 +717,30 @@ export default function Home() {
 											aria-label="Close Shop tab"
 											className="tab-close"
 											onClick={closeShopTab}
+											type="button"
+										>
+											x
+										</button>
+									</div>
+								) : null}
+								{isPlatformTabOpen ? (
+									<div
+										className={`browser-tab browser-tab-with-close ${
+											activeTab === "platform" ? "active" : ""
+										}`}
+									>
+										<button
+											aria-selected={activeTab === "platform"}
+											onClick={() => setActiveTab("platform")}
+											role="tab"
+											type="button"
+										>
+											Platform
+										</button>
+										<button
+											aria-label="Close Platform tab"
+											className="tab-close"
+											onClick={closePlatformTab}
 											type="button"
 										>
 											x
@@ -814,6 +875,213 @@ export default function Home() {
 										</table>
 									</section>
 								</div>
+							) : activeTab === "platform" ? (
+								<div className="main-canvas platform-tab-page">
+									<section className="platform-hero">
+										<div>
+											<span>ship desk</span>
+											<h2>Submit your Widget project</h2>
+											<p>
+												Sign in with Hack Club, save your playable demo,
+												codebase, screenshot, and review notes in one secure
+												workspace.
+											</p>
+										</div>
+										{session ? (
+											<div className="platform-user">
+												<span>signed in</span>
+												<strong>{session.user.name}</strong>
+												{session.user.email ? (
+													<small>{session.user.email}</small>
+												) : null}
+												<form action="/api/auth/logout" method="post">
+													<button type="submit">sign out</button>
+												</form>
+											</div>
+										) : (
+											<a className="platform-login" href="/api/auth/login">
+												sign in with Hack Club
+											</a>
+										)}
+									</section>
+
+									{session ? (
+										<div className="project-workspace">
+											<form className="project-form" onSubmit={submitProject}>
+												<div className="project-form-head">
+													<span>new project</span>
+													<strong>Project basics</strong>
+												</div>
+												<label>
+													Project name
+													<input
+														maxLength={80}
+														minLength={2}
+														onChange={(event) =>
+															updateProjectForm("name", event.target.value)
+														}
+														required
+														value={projectForm.name}
+													/>
+												</label>
+												<div className="project-field-grid">
+													<label>
+														Playable URL
+														<input
+															onChange={(event) =>
+																updateProjectForm(
+																	"playableUrl",
+																	event.target.value,
+																)
+															}
+															placeholder="https://..."
+															required
+															type="url"
+															value={projectForm.playableUrl}
+														/>
+													</label>
+													<label>
+														Codebase URL
+														<input
+															onChange={(event) =>
+																updateProjectForm(
+																	"codebaseUrl",
+																	event.target.value,
+																)
+															}
+															placeholder="https://github.com/..."
+															required
+															type="url"
+															value={projectForm.codebaseUrl}
+														/>
+													</label>
+												</div>
+												<label>
+													Screenshot URL
+													<input
+														onChange={(event) =>
+															updateProjectForm(
+																"screenshotUrl",
+																event.target.value,
+															)
+														}
+														placeholder="https://..."
+														type="url"
+														value={projectForm.screenshotUrl}
+													/>
+												</label>
+												<label>
+													What did you build?
+													<textarea
+														maxLength={700}
+														minLength={20}
+														onChange={(event) =>
+															updateProjectForm(
+																"description",
+																event.target.value,
+															)
+														}
+														required
+														rows={4}
+														value={projectForm.description}
+													/>
+												</label>
+												<label>
+													Hack Club review notes
+													<textarea
+														maxLength={700}
+														minLength={10}
+														onChange={(event) =>
+															updateProjectForm(
+																"hackClubInfo",
+																event.target.value,
+															)
+														}
+														placeholder="hours spent, eligibility notes, Slack handle, special review context"
+														required
+														rows={3}
+														value={projectForm.hackClubInfo}
+													/>
+												</label>
+												<div className="project-submit-row">
+													<label className="status-select">
+														Status
+														<select
+															onChange={(event) =>
+																updateProjectForm(
+																	"status",
+																	event.target.value as ProjectStatus,
+																)
+															}
+															value={projectForm.status}
+														>
+															<option value="draft">Draft</option>
+															<option value="submitted">Submitted</option>
+														</select>
+													</label>
+													<button
+														disabled={createProject.isPending}
+														type="submit"
+													>
+														{createProject.isPending
+															? "saving..."
+															: "save project"}
+													</button>
+												</div>
+												{createProject.error ? (
+													<p className="form-error">
+														{createProject.error.message}
+													</p>
+												) : null}
+											</form>
+
+											<section className="project-list">
+												<div className="project-form-head">
+													<span>your builds</span>
+													<strong>
+														{projectsQuery.data?.length ?? 0} project
+														{projectsQuery.data?.length === 1 ? "" : "s"}
+													</strong>
+												</div>
+												{projectsQuery.isLoading ? (
+													<p className="project-empty">loading projects...</p>
+												) : projectsQuery.data?.length ? (
+													<ul>
+														{projectsQuery.data.map((project) => (
+															<li key={project.id}>
+																<div>
+																	<span>{project.status}</span>
+																	<strong>{project.name}</strong>
+																	<p>{project.description}</p>
+																</div>
+																<div className="project-links">
+																	<a href={project.playableUrl}>play</a>
+																	<a href={project.codebaseUrl}>code</a>
+																	{project.screenshotUrl ? (
+																		<a href={project.screenshotUrl}>shot</a>
+																	) : null}
+																</div>
+															</li>
+														))}
+													</ul>
+												) : (
+													<p className="project-empty">
+														No projects yet. Save your first playable build
+														here.
+													</p>
+												)}
+											</section>
+										</div>
+									) : (
+										<section className="platform-locked">
+											<strong>Hack Club Auth protects submissions</strong>
+											<p>
+												Project data is available only after the server verifies
+												your Hack Club account and tRPC attaches your session.
+											</p>
+										</section>
+									)}
+								</div>
 							) : (
 								<div className="main-canvas">
 									<section className="hero-copy">
@@ -840,78 +1108,17 @@ export default function Home() {
 										</div>
 									</section>
 
-									<div className="mini-chrome-demo">
-										<div className="demo-switcher" role="tablist">
-											{demoIdeas.map((demoIdea) => (
-												<button
-													aria-selected={activeDemoIdea === demoIdea.id}
-													className={
-														activeDemoIdea === demoIdea.id ? "active" : ""
-													}
-													key={demoIdea.id}
-													onClick={() => setActiveDemoIdea(demoIdea.id)}
-													role="tab"
-													type="button"
-												>
-													{demoIdea.label}
-												</button>
-											))}
-										</div>
-										<div className="chrome-top">
-											<span />
-											<span />
-											<span />
-											<div className="chrome-tab" />
-										</div>
-										<div className="chrome-bar">
-											<div className="chrome-url" />
-											<div className="chrome-extension-icon">W</div>
-										</div>
-										{activeDemoIdea === "extension" ? (
-											<>
-												<div className="chrome-page">
-													<div className="chrome-line wide" />
-													<div className="chrome-line" />
-													<div className="chrome-card" />
-												</div>
-												<div className="chrome-popup-mini">
-													<strong>Widget</strong>
-													<span />
-													<span />
-												</div>
-												<div className="click-hand">
-													<span />
-												</div>
-											</>
-										) : null}
-										{activeDemoIdea === "desktop" ? (
-											<div className="desktop-widget-demo">
-												<div className="desktop-widget">
-													<div className="mini-title">
-														<span>Widget.exe</span>
-														<span>x</span>
-													</div>
-													<strong>Ship streak</strong>
-													<span>3 demos ready</span>
-												</div>
-												<div className="desktop-widget-note">
-													drag me onto your desktop
-												</div>
-											</div>
-										) : null}
-										{activeDemoIdea === "clippy" ? (
-											<div className="clippy-demo">
-												<div className="clippy-face">
-													<span />
-													<span />
-												</div>
-												<div className="clippy-bubble">
-													<strong>Need an extension idea?</strong>
-													<span>try changing one page you use daily</span>
-												</div>
-											</div>
-										) : null}
-									</div>
+									<button
+										className="platform-entry-button"
+										onClick={openPlatformTab}
+										type="button"
+									>
+										<span>Ready to join?</span>
+										<strong>Get Started!</strong>
+										<span aria-hidden="true" className="platform-entry-arrow">
+											→
+										</span>
+									</button>
 
 									<ul aria-label="Widget steps" className="step-strip">
 										<li className="step-item">
@@ -937,15 +1144,15 @@ export default function Home() {
 												<strong>
 													Develop your browser extension and submit for review
 												</strong>
-												<a href="https://browserbuddy.hackclub.com/submit">
-													open form
-												</a>
+												<button onClick={openPlatformTab} type="button">
+													open platform
+												</button>
 											</div>
 										</li>
 										<li className="step-item">
 											<div className="step-chip">
 												<span className="tiny-window" />
-												get merch
+												Get Merch, Prizes, and More!
 											</div>
 											<div className="panel-content merch-panel">
 												<span>shop preview</span>
