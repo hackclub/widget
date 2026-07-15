@@ -7,7 +7,13 @@ export const env = createEnv({
 	 * isn't built with invalid env vars.
 	 */
 	server: {
+		HACK_CLUB_CLIENT_ID: z.string().min(1),
+		HACK_CLUB_CLIENT_SECRET: z.string().min(1),
+		HACK_CLUB_REDIRECT_URI: z.string().url().optional(),
+		HACK_CLUB_SCOPES: z.string().min(1).optional(),
 		NODE_ENV: z.enum(["development", "test", "production"]),
+		POSTGRES_URL: z.string().url(),
+		SIDEKICK_SECRET: z.string().min(1),
 	},
 
 	/**
@@ -24,7 +30,13 @@ export const env = createEnv({
 	 * middlewares) or client-side so we need to destruct manually.
 	 */
 	runtimeEnv: {
+		HACK_CLUB_CLIENT_ID: process.env.HACK_CLUB_CLIENT_ID,
+		HACK_CLUB_CLIENT_SECRET: process.env.HACK_CLUB_CLIENT_SECRET,
+		HACK_CLUB_REDIRECT_URI: process.env.HACK_CLUB_REDIRECT_URI,
+		HACK_CLUB_SCOPES: process.env.HACK_CLUB_SCOPES,
 		NODE_ENV: process.env.NODE_ENV,
+		POSTGRES_URL: process.env.POSTGRES_URL,
+		SIDEKICK_SECRET: process.env.SIDEKICK_SECRET,
 		// NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 	},
 	/**

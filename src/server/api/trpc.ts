@@ -6,9 +6,11 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+
+import { getSessionFromHeaders } from "~/server/auth";
 
 /**
  * 1. CONTEXT
@@ -25,6 +27,7 @@ import { ZodError } from "zod";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
 	return {
 		...opts,
+		session: await getSessionFromHeaders(opts.headers),
 	};
 };
 
@@ -101,3 +104,18 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+export const protectedProcedure = publicProcedure.use(({ ctx, next }) => {
+	if (!ctx.session) {
+		throw new TRPCError({
+			code: "UNAUTHORIZED",
+			message: "Sign in with Hack Club to continue.",
+		});
+	}
+
+	return next({
+		ctx: {
+			session: ctx.session,
+		},
+	});
+});
