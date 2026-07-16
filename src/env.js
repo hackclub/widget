@@ -12,7 +12,7 @@ export const env = createEnv({
 		AIRTABLE_TOKEN: z.string().min(1).optional(),
 		HACK_CLUB_CLIENT_ID: z.string().min(1),
 		HACK_CLUB_CLIENT_SECRET: z.string().min(1),
-		HACK_CLUB_REDIRECT_URI: z.string().url().optional(),
+		HACK_CLUB_REDIRECT_URI: z.string().min(1).optional(),
 		HACK_CLUB_SCOPES: z.string().min(1).optional(),
 		NODE_ENV: z.enum(["development", "test", "production"]),
 		POSTGRES_URL: z.string().url(),
