@@ -95,8 +95,10 @@ function getHackClubScopes() {
 }
 
 export function getRedirectUri(origin: string) {
-	const redirectUri = env.HACK_CLUB_REDIRECT_URI
-		? cleanEnvValue(env.HACK_CLUB_REDIRECT_URI)
+	const configuredRedirectUri =
+		env.HACKCLUB_REDIRECT_URI ?? env.HACK_CLUB_REDIRECT_URI;
+	const redirectUri = configuredRedirectUri
+		? cleanEnvValue(configuredRedirectUri)
 		: `${origin}/api/auth/callback`;
 
 	if (redirectUri.startsWith("http://") || redirectUri.startsWith("https://")) {
