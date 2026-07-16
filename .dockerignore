@@ -1,0 +1,17 @@
+.context
+.conductor
+.git
+.next
+.vercel
+coverage
+node_modules
+out
+build
+
+.env
+.env*.local
+
+.DS_Store
+*.log
+*.pem
+*.tsbuildinfo
