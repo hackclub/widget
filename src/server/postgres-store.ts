@@ -68,7 +68,18 @@ const sql =
 globalForPostgres.widgetDatabase = sql;
 
 function getPostgresUrl() {
-	const url = new URL(env.POSTGRES_URL);
+	let url: URL;
+
+	try {
+		url = new URL(env.POSTGRES_URL);
+	} catch (error) {
+		if (process.env.SKIP_ENV_VALIDATION) {
+			url = new URL("postgresql://build:build@localhost:5432/build");
+		} else {
+			throw error;
+		}
+	}
+
 	url.searchParams.delete("sslrootcert");
 
 	return url.toString();
