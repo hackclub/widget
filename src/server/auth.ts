@@ -71,8 +71,39 @@ function secureCookies() {
 	return env.NODE_ENV === "production";
 }
 
+function cleanEnvValue(value: string) {
+	const trimmed = value.trim();
+	const withoutMatchingQuotes =
+		(trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+		(trimmed.startsWith("'") && trimmed.endsWith("'"))
+			? trimmed.slice(1, -1)
+			: trimmed;
+
+	return withoutMatchingQuotes.trim();
+}
+
+function getHackClubClientId() {
+	return cleanEnvValue(env.HACK_CLUB_CLIENT_ID);
+}
+
+function getHackClubClientSecret() {
+	return cleanEnvValue(env.HACK_CLUB_CLIENT_SECRET);
+}
+
+function getHackClubScopes() {
+	return cleanEnvValue(env.HACK_CLUB_SCOPES ?? defaultHackClubScopes);
+}
+
 export function getRedirectUri(origin: string) {
-	return env.HACK_CLUB_REDIRECT_URI ?? `${origin}/api/auth/callback`;
+	const redirectUri = env.HACK_CLUB_REDIRECT_URI
+		? cleanEnvValue(env.HACK_CLUB_REDIRECT_URI)
+		: `${origin}/api/auth/callback`;
+
+	if (redirectUri.startsWith("http://") || redirectUri.startsWith("https://")) {
+		return redirectUri;
+	}
+
+	return `https://${redirectUri}`;
 }
 
 export async function createAuthRedirect(origin: string) {
@@ -87,13 +118,10 @@ export async function createAuthRedirect(origin: string) {
 	});
 
 	const authorizeUrl = new URL("/oauth/authorize", authBaseUrl);
-	authorizeUrl.searchParams.set("client_id", env.HACK_CLUB_CLIENT_ID);
+	authorizeUrl.searchParams.set("client_id", getHackClubClientId());
 	authorizeUrl.searchParams.set("redirect_uri", getRedirectUri(origin));
 	authorizeUrl.searchParams.set("response_type", "code");
-	authorizeUrl.searchParams.set(
-		"scope",
-		env.HACK_CLUB_SCOPES ?? defaultHackClubScopes,
-	);
+	authorizeUrl.searchParams.set("scope", getHackClubScopes());
 	authorizeUrl.searchParams.set("state", state);
 
 	return authorizeUrl;
@@ -114,8 +142,8 @@ export async function consumeOAuthCallback(input: {
 
 	const tokenResponse = await fetch(`${authBaseUrl}/oauth/token`, {
 		body: JSON.stringify({
-			client_id: env.HACK_CLUB_CLIENT_ID,
-			client_secret: env.HACK_CLUB_CLIENT_SECRET,
+			client_id: getHackClubClientId(),
+			client_secret: getHackClubClientSecret(),
 			code: input.code,
 			grant_type: "authorization_code",
 			redirect_uri: getRedirectUri(input.origin),
