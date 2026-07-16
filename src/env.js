@@ -7,6 +7,9 @@ export const env = createEnv({
 	 * isn't built with invalid env vars.
 	 */
 	server: {
+		AIRTABLE_BASE_ID: z.string().min(1).optional(),
+		AIRTABLE_TABLE_ID: z.string().min(1).optional(),
+		AIRTABLE_TOKEN: z.string().min(1).optional(),
 		HACK_CLUB_CLIENT_ID: z.string().min(1),
 		HACK_CLUB_CLIENT_SECRET: z.string().min(1),
 		HACK_CLUB_REDIRECT_URI: z.string().url().optional(),
@@ -30,6 +33,9 @@ export const env = createEnv({
 	 * middlewares) or client-side so we need to destruct manually.
 	 */
 	runtimeEnv: {
+		AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID,
+		AIRTABLE_TABLE_ID: process.env.AIRTABLE_TABLE_ID,
+		AIRTABLE_TOKEN: process.env.AIRTABLE_TOKEN,
 		HACK_CLUB_CLIENT_ID: process.env.HACK_CLUB_CLIENT_ID,
 		HACK_CLUB_CLIENT_SECRET: process.env.HACK_CLUB_CLIENT_SECRET,
 		HACK_CLUB_REDIRECT_URI: process.env.HACK_CLUB_REDIRECT_URI,

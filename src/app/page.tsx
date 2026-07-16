@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	type ChangeEvent,
 	type FormEvent,
 	type PointerEvent,
 	useCallback,
@@ -19,8 +20,6 @@ type WindowDragStart = {
 };
 
 type BrowserTab = "widget" | "guides" | "shop" | "platform";
-type ProjectStatus = "draft" | "submitted";
-
 type PrizeCard = {
 	category: string;
 	title: string;
@@ -31,11 +30,15 @@ type PrizeCard = {
 type ProjectFormState = {
 	codebaseUrl: string;
 	description: string;
-	hackClubInfo: string;
 	name: string;
 	playableUrl: string;
 	screenshotUrl: string;
-	status: ProjectStatus;
+};
+
+type SubmissionFormState = {
+	estimatedHoursSpent: string;
+	githubUsername: string;
+	hackatimeProjectUrl: string;
 };
 
 const ideas = [
@@ -191,7 +194,6 @@ const prizeCards: [PrizeCard, ...PrizeCard[]] = [
 	},
 ];
 
-const visiblePrizeCardCount = 2;
 const hourlyEarnings = 8.5;
 const userBudgetPerHour = 4;
 const profitPerHour = hourlyEarnings - userBudgetPerHour;
@@ -203,39 +205,106 @@ const addressBarMessages = [
 	"Typing privileges revoked by the Widget council.",
 ];
 
-const guideTracks = [
+const rustImprovementGuide = [
 	{
-		title: "Set up",
-		steps: ["make a folder", "add manifest.json", "load unpacked in Chrome"],
+		title: "1. Make the folder",
+		steps: [
+			"Create a new folder named rust-improvement-engine.",
+			"Inside it, create two files: manifest.json and content.js.",
+			"Keep both files in the top level of the folder so Chrome can find them.",
+		],
 	},
 	{
-		title: "Make it",
-		steps: ["pick one page job", "write popup.js", "test on real sites"],
+		title: "2. Add manifest.json",
+		steps: [
+			"manifest.json tells Chrome the extension name, version, permissions, and which script should run on web pages.",
+			"Use Manifest V3. The content script should run on http and https pages so it can look for the word Rust.",
+		],
+		code: `{
+  "manifest_version": 3,
+  "name": "Rust Improvement Engine",
+  "version": "1.0.0",
+  "description": "Changes every instance of Rust into Blazing Fast.",
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"]
+    }
+  ]
+}`,
 	},
 	{
-		title: "Ship it",
-		steps: ["zip the folder", "record a demo", "submit your build"],
+		title: "3. Write content.js",
+		steps: [
+			"content.js runs inside each matching page.",
+			"Use a TreeWalker to visit text nodes only. That avoids breaking buttons, links, images, scripts, and layout.",
+			"Replace every exact instance of Rust with Blazing Fast.",
+		],
+		code: `const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+
+let textNode = walker.nextNode();
+
+while (textNode) {
+  textNode.nodeValue = textNode.nodeValue.replaceAll("Rust", "Blazing Fast");
+  textNode = walker.nextNode();
+}`,
+	},
+	{
+		title: "4. Load it in Chrome",
+		steps: [
+			"Open chrome://extensions.",
+			"Turn on Developer mode in the top right.",
+			"Click Load unpacked and choose the rust-improvement-engine folder.",
+			"Pin the extension if you want, but this extension works automatically on pages.",
+		],
+	},
+	{
+		title: "5. Test it on real pages",
+		steps: [
+			"Open the Rust test page on this site: /rust-test.",
+			"Refresh the page after loading the extension.",
+			"Confirm Rust becomes Blazing Fast while other page text still works.",
+			"Edit content.js, then return to chrome://extensions and click the reload button on the extension before testing again.",
+		],
+	},
+	{
+		title: "6. Put your code on GitHub",
+		steps: [
+			"Make a free GitHub account if you do not already have one.",
+			"Create a new public repository named rust-improvement-engine.",
+			"Upload manifest.json and content.js to the repository.",
+			"Commit the files with a short message like add rust improvement engine.",
+			"Copy the repository URL. This is the codebase link you will submit for review.",
+		],
+	},
+	{
+		title: "7. Submit for review",
+		steps: [
+			"Take one screenshot showing the Rust test page after the replacement works.",
+			"Submit your GitHub repository URL as the codebase link.",
+			"Submit your GitHub repository URL as the playable link too.",
+			"Describe your extension in your own words.",
+		],
 	},
 ];
 
-const starterGuides = [
-	{
-		name: "Tab Garden",
-		description: "grow a plant every time you open a new tab",
-	},
-	{
-		name: "Deadline Highlighter",
-		description: "mark dates and countdowns on school pages",
-	},
-	{
-		name: "Tiny Scrapbook",
-		description: "save quotes, links, and screenshots from any page",
-	},
-	{
-		name: "Button DJ",
-		description: "add arcade sounds to boring web buttons",
-	},
-];
+function renderGuideStep(step: string) {
+	if (!step.includes("/rust-test")) {
+		return step;
+	}
+
+	const [before, after = ""] = step.split("/rust-test");
+
+	return (
+		<>
+			{before}
+			<a href="/rust-test" rel="noreferrer" target="_blank">
+				/rust-test
+			</a>
+			{after}
+		</>
+	);
+}
 
 const footerLinks = [
 	{
@@ -255,12 +324,18 @@ const footerLinks = [
 const emptyProjectForm: ProjectFormState = {
 	codebaseUrl: "",
 	description: "",
-	hackClubInfo: "",
 	name: "",
 	playableUrl: "",
 	screenshotUrl: "",
-	status: "draft",
 };
+
+const emptySubmissionForm: SubmissionFormState = {
+	estimatedHoursSpent: "",
+	githubUsername: "",
+	hackatimeProjectUrl: "",
+};
+
+const maxScreenshotUploadBytes = 1_000_000;
 
 export default function Home() {
 	const utils = api.useUtils();
@@ -272,12 +347,43 @@ export default function Home() {
 	const createProject = api.projects.create.useMutation({
 		onSuccess: async () => {
 			setProjectForm(emptyProjectForm);
+			setEditingProjectId(null);
+			setActiveProjectMode("create");
+			await utils.projects.listMine.invalidate();
+		},
+	});
+	const updateProject = api.projects.update.useMutation({
+		onSuccess: async () => {
+			setProjectForm(emptyProjectForm);
+			setEditingProjectId(null);
+			setActiveProjectMode("create");
+			await utils.projects.listMine.invalidate();
+		},
+	});
+	const submitProjectForReview = api.projects.submitForReview.useMutation({
+		onSuccess: async () => {
+			setActiveProjectMode("create");
+			setProjectForm(emptyProjectForm);
+			setSubmittingProjectId(null);
+			setSubmissionForm(emptySubmissionForm);
 			await utils.projects.listMine.invalidate();
 		},
 	});
 	const [activeTab, setActiveTab] = useState<BrowserTab>("widget");
 	const [projectForm, setProjectForm] =
 		useState<ProjectFormState>(emptyProjectForm);
+	const [screenshotUploadError, setScreenshotUploadError] = useState<
+		string | null
+	>(null);
+	const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+	const [activeProjectMode, setActiveProjectMode] = useState<
+		"create" | "edit" | "submission" | "view"
+	>("create");
+	const [submittingProjectId, setSubmittingProjectId] = useState<string | null>(
+		null,
+	);
+	const [submissionForm, setSubmissionForm] =
+		useState<SubmissionFormState>(emptySubmissionForm);
 	const [isGuidesTabOpen, setIsGuidesTabOpen] = useState(false);
 	const [isGuidesTabClosing, setIsGuidesTabClosing] = useState(false);
 	const [isShopTabOpen, setIsShopTabOpen] = useState(false);
@@ -296,10 +402,12 @@ export default function Home() {
 	const addressTakeoverTimeout = useRef<number | null>(null);
 	const nyanAudioRef = useRef<HTMLAudioElement | null>(null);
 	const idea = ideas[ideaIndex] ?? ideas[0];
-	const prizeStack = prizeCards.slice(0, visiblePrizeCardCount);
 	const dragStartRef = useRef<WindowDragStart | null>(null);
 	const [showAlreadyHere, setShowAlreadyHere] = useState(false);
 	const [alreadyHereFading, setAlreadyHereFading] = useState(false);
+	const submittingProject = projectsQuery.data?.find((project) => {
+		return project.id === submittingProjectId;
+	});
 	const alreadyHereTimeout = useRef<number | null>(null);
 	const goButtonWrapRef = useRef<HTMLDivElement>(null);
 	const addressByTab: Record<BrowserTab, string> = {
@@ -604,7 +712,59 @@ export default function Home() {
 		field: Field,
 		value: ProjectFormState[Field],
 	) {
+		if (field === "screenshotUrl") {
+			setScreenshotUploadError(null);
+		}
+
 		setProjectForm((current) => ({
+			...current,
+			[field]: value,
+		}));
+	}
+
+	function isUploadedScreenshot(value: string) {
+		return /^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(value);
+	}
+
+	function uploadScreenshot(event: ChangeEvent<HTMLInputElement>) {
+		const file = event.target.files?.[0];
+		event.target.value = "";
+
+		if (!file) {
+			return;
+		}
+
+		if (!file.type.startsWith("image/")) {
+			setScreenshotUploadError("Upload a PNG, JPG, GIF, or WebP image.");
+			return;
+		}
+
+		if (file.size > maxScreenshotUploadBytes) {
+			setScreenshotUploadError("Screenshot uploads must be smaller than 1 MB.");
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.addEventListener("load", () => {
+			if (typeof reader.result !== "string") {
+				setScreenshotUploadError("Could not read that screenshot.");
+				return;
+			}
+
+			setScreenshotUploadError(null);
+			updateProjectForm("screenshotUrl", reader.result);
+		});
+		reader.addEventListener("error", () => {
+			setScreenshotUploadError("Could not read that screenshot.");
+		});
+		reader.readAsDataURL(file);
+	}
+
+	function updateSubmissionForm<Field extends keyof SubmissionFormState>(
+		field: Field,
+		value: SubmissionFormState[Field],
+	) {
+		setSubmissionForm((current) => ({
 			...current,
 			[field]: value,
 		}));
@@ -612,7 +772,107 @@ export default function Home() {
 
 	function submitProject(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		createProject.mutate(projectForm);
+
+		if (editingProjectId && activeProjectMode === "edit") {
+			updateProject.mutate({
+				...projectForm,
+				projectId: editingProjectId,
+				status: "draft",
+			});
+			return;
+		}
+
+		createProject.mutate({
+			...projectForm,
+			status: "draft",
+		});
+	}
+
+	function editProject(project: {
+		codebaseUrl: string;
+		description: string;
+		id: string;
+		name: string;
+		playableUrl: string;
+		screenshotUrl: string | null;
+	}) {
+		setEditingProjectId(project.id);
+		setSubmittingProjectId(null);
+		setActiveProjectMode("edit");
+		setScreenshotUploadError(null);
+		setProjectForm({
+			codebaseUrl: project.codebaseUrl,
+			description: project.description,
+			name: project.name,
+			playableUrl: project.playableUrl,
+			screenshotUrl: project.screenshotUrl ?? "",
+		});
+	}
+
+	function viewProject(project: {
+		codebaseUrl: string;
+		description: string;
+		id: string;
+		name: string;
+		playableUrl: string;
+		screenshotUrl: string | null;
+	}) {
+		setEditingProjectId(project.id);
+		setSubmittingProjectId(null);
+		setActiveProjectMode("view");
+		setScreenshotUploadError(null);
+		setProjectForm({
+			codebaseUrl: project.codebaseUrl,
+			description: project.description,
+			name: project.name,
+			playableUrl: project.playableUrl,
+			screenshotUrl: project.screenshotUrl ?? "",
+		});
+	}
+
+	function resetProjectForm() {
+		setEditingProjectId(null);
+		setActiveProjectMode("create");
+		setSubmittingProjectId(null);
+		setProjectForm(emptyProjectForm);
+		setSubmissionForm(emptySubmissionForm);
+		setScreenshotUploadError(null);
+	}
+
+	function startProjectSubmission(projectId: string) {
+		setEditingProjectId(null);
+		setActiveProjectMode("submission");
+		setSubmittingProjectId(projectId);
+		setProjectForm(emptyProjectForm);
+		setSubmissionForm(emptySubmissionForm);
+		setScreenshotUploadError(null);
+	}
+
+	function projectStatusLabel(status: string) {
+		if (status === "draft") {
+			return "not submitted";
+		}
+
+		if (status === "pending") {
+			return "submitted - final";
+		}
+
+		return status.replace("_", " ");
+	}
+
+	function submitProjectForFinalReview(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+
+		if (!submittingProjectId) {
+			return;
+		}
+
+		submitProjectForReview.mutate({
+			estimatedHoursSpent: Number(submissionForm.estimatedHoursSpent),
+			githubUsername: submissionForm.githubUsername,
+			hackatimeProjectUrl: submissionForm.hackatimeProjectUrl,
+			projectId: submittingProjectId,
+		});
 	}
 
 	return (
@@ -803,28 +1063,29 @@ export default function Home() {
 							{activeTab === "guides" ? (
 								<div className="main-canvas guides-tab-page">
 									<section className="guides-intro">
-										<span>start here</span>
-										<strong>Extension maker guidebook</strong>
+										<strong>Build Your First Extension!</strong>
+										<p>
+											This is the Rust Improvement Engine - a basic extension
+											that changes every instance of the word "Rust" into
+											"Blazing Fast".
+										</p>
 									</section>
-									<div className="guide-track-grid">
-										{guideTracks.map((track) => (
-											<section className="guide-track" key={track.title}>
-												<h2>{track.title}</h2>
-												<ol>
-													{track.steps.map((step) => (
-														<li key={step}>{step}</li>
-													))}
-												</ol>
-											</section>
-										))}
-									</div>
-									<section className="starter-guides">
-										<h2>Starter extension ideas</h2>
+									<section className="starter-guides written-guide">
+										<h2>Full written guide</h2>
 										<div>
-											{starterGuides.map((guide) => (
-												<article key={guide.name}>
-													<strong>{guide.name}</strong>
-													<p>{guide.description}</p>
+											{rustImprovementGuide.map((section) => (
+												<article key={section.title}>
+													<strong>{section.title}</strong>
+													<ol>
+														{section.steps.map((step) => (
+															<li key={step}>{renderGuideStep(step)}</li>
+														))}
+													</ol>
+													{"code" in section ? (
+														<pre>
+															<code>{section.code}</code>
+														</pre>
+													) : null}
 												</article>
 											))}
 										</div>
@@ -877,10 +1138,13 @@ export default function Home() {
 								</div>
 							) : activeTab === "platform" ? (
 								<div className="main-canvas platform-tab-page">
-									<section className="platform-hero">
+									<section
+										className={`platform-hero ${
+											session ? "" : "platform-hero-signed-out"
+										}`}
+									>
 										<div>
-											<span>ship desk</span>
-											<h2>Submit your Widget project</h2>
+											<h2>Widget Platform</h2>
 											<p>
 												Sign in with Hack Club, save your playable demo,
 												codebase, screenshot, and review notes in one secure
@@ -898,139 +1162,294 @@ export default function Home() {
 													<button type="submit">sign out</button>
 												</form>
 											</div>
-										) : (
-											<a className="platform-login" href="/api/auth/login">
-												sign in with Hack Club
-											</a>
-										)}
+										) : null}
 									</section>
 
 									{session ? (
 										<div className="project-workspace">
-											<form className="project-form" onSubmit={submitProject}>
-												<div className="project-form-head">
-													<span>new project</span>
-													<strong>Project basics</strong>
+											<form
+												className="project-form"
+												onSubmit={
+													activeProjectMode === "submission"
+														? submitProjectForFinalReview
+														: submitProject
+												}
+											>
+												<div
+													className={`project-form-head ${
+														activeProjectMode !== "create" &&
+														activeProjectMode !== "submission"
+															? "project-form-head-with-action"
+															: ""
+													}`}
+												>
+													<strong>
+														{activeProjectMode === "submission" ? (
+															<>
+																Final submission for{" "}
+																<em className="project-editing-word">
+																	{submittingProject?.name ?? "this project"}
+																</em>
+															</>
+														) : activeProjectMode === "view" ? (
+															"Submission Details"
+														) : activeProjectMode === "edit" ? (
+															<>
+																<em className="project-editing-word">
+																	Editing
+																</em>{" "}
+																an Extension Project
+															</>
+														) : (
+															"Make a New Extension Project"
+														)}
+													</strong>
+													{activeProjectMode !== "create" &&
+													activeProjectMode !== "submission" ? (
+														<button onClick={resetProjectForm} type="button">
+															new project
+														</button>
+													) : null}
 												</div>
-												<label>
-													Project name
-													<input
-														maxLength={80}
-														minLength={2}
-														onChange={(event) =>
-															updateProjectForm("name", event.target.value)
-														}
-														required
-														value={projectForm.name}
-													/>
-												</label>
-												<div className="project-field-grid">
-													<label>
-														Playable URL
-														<input
-															onChange={(event) =>
-																updateProjectForm(
-																	"playableUrl",
-																	event.target.value,
-																)
-															}
-															placeholder="https://..."
-															required
-															type="url"
-															value={projectForm.playableUrl}
-														/>
-													</label>
-													<label>
-														Codebase URL
-														<input
-															onChange={(event) =>
-																updateProjectForm(
-																	"codebaseUrl",
-																	event.target.value,
-																)
-															}
-															placeholder="https://github.com/..."
-															required
-															type="url"
-															value={projectForm.codebaseUrl}
-														/>
-													</label>
-												</div>
-												<label>
-													Screenshot URL
-													<input
-														onChange={(event) =>
-															updateProjectForm(
-																"screenshotUrl",
-																event.target.value,
-															)
-														}
-														placeholder="https://..."
-														type="url"
-														value={projectForm.screenshotUrl}
-													/>
-												</label>
-												<label>
-													What did you build?
-													<textarea
-														maxLength={700}
-														minLength={20}
-														onChange={(event) =>
-															updateProjectForm(
-																"description",
-																event.target.value,
-															)
-														}
-														required
-														rows={4}
-														value={projectForm.description}
-													/>
-												</label>
-												<label>
-													Hack Club review notes
-													<textarea
-														maxLength={700}
-														minLength={10}
-														onChange={(event) =>
-															updateProjectForm(
-																"hackClubInfo",
-																event.target.value,
-															)
-														}
-														placeholder="hours spent, eligibility notes, Slack handle, special review context"
-														required
-														rows={3}
-														value={projectForm.hackClubInfo}
-													/>
-												</label>
-												<div className="project-submit-row">
-													<label className="status-select">
-														Status
-														<select
-															onChange={(event) =>
-																updateProjectForm(
-																	"status",
-																	event.target.value as ProjectStatus,
-																)
-															}
-															value={projectForm.status}
-														>
-															<option value="draft">Draft</option>
-															<option value="submitted">Submitted</option>
-														</select>
-													</label>
-													<button
-														disabled={createProject.isPending}
-														type="submit"
-													>
-														{createProject.isPending
-															? "saving..."
-															: "save project"}
-													</button>
-												</div>
+												{activeProjectMode === "submission" ? (
+													<>
+														<p className="project-form-note">
+															Name, email, birthdate, Slack ID, and shipping
+															address are pulled from Hack Club Auth. Submitting
+															is final.
+														</p>
+														<label>
+															GitHub Username
+															<input
+																onChange={(event) =>
+																	updateSubmissionForm(
+																		"githubUsername",
+																		event.target.value,
+																	)
+																}
+																required
+																value={submissionForm.githubUsername}
+															/>
+														</label>
+														<label>
+															Estimated Hours Spent
+															<input
+																min="0.25"
+																onChange={(event) =>
+																	updateSubmissionForm(
+																		"estimatedHoursSpent",
+																		event.target.value,
+																	)
+																}
+																required
+																step="0.25"
+																type="number"
+																value={submissionForm.estimatedHoursSpent}
+															/>
+														</label>
+														<label>
+															Hackatime Project URL
+															<input
+																inputMode="url"
+																onChange={(event) =>
+																	updateSubmissionForm(
+																		"hackatimeProjectUrl",
+																		event.target.value,
+																	)
+																}
+																pattern="^(https?:\/\/)?hackatime\.hackclub\.com\/.+"
+																placeholder="https://hackatime.hackclub.com/..."
+																required
+																title="Enter a hackatime.hackclub.com project URL"
+																type="text"
+																value={submissionForm.hackatimeProjectUrl}
+															/>
+														</label>
+														<div className="project-review-actions">
+															<button onClick={resetProjectForm} type="button">
+																cancel
+															</button>
+															<button
+																disabled={submitProjectForReview.isPending}
+																type="submit"
+															>
+																{submitProjectForReview.isPending
+																	? "submitting..."
+																	: "submit final"}
+															</button>
+														</div>
+													</>
+												) : (
+													<>
+														<label>
+															Extension name
+															<input
+																disabled={activeProjectMode === "view"}
+																maxLength={80}
+																minLength={2}
+																onChange={(event) =>
+																	updateProjectForm("name", event.target.value)
+																}
+																required
+																value={projectForm.name}
+															/>
+														</label>
+														<div className="project-field-grid">
+															<label>
+																Playable URL
+																<input
+																	disabled={activeProjectMode === "view"}
+																	inputMode="url"
+																	onChange={(event) =>
+																		updateProjectForm(
+																			"playableUrl",
+																			event.target.value,
+																		)
+																	}
+																	placeholder="https://github.com/..."
+																	required
+																	type="text"
+																	value={projectForm.playableUrl}
+																/>
+																<small>
+																	Usually your codebase if you're not published.
+																</small>
+															</label>
+															<label>
+																Codebase URL
+																<input
+																	disabled={activeProjectMode === "view"}
+																	inputMode="url"
+																	onChange={(event) =>
+																		updateProjectForm(
+																			"codebaseUrl",
+																			event.target.value,
+																		)
+																	}
+																	placeholder="https://github.com/..."
+																	required
+																	type="text"
+																	value={projectForm.codebaseUrl}
+																/>
+																<small>
+																	GitHub URL, GitLab URL, BitBucket URL, etc.
+																</small>
+															</label>
+														</div>
+														<label>
+															Screenshot URL
+															<input
+																disabled={activeProjectMode === "view"}
+																inputMode="url"
+																onChange={(event) =>
+																	updateProjectForm(
+																		"screenshotUrl",
+																		event.target.value,
+																	)
+																}
+																placeholder={
+																	isUploadedScreenshot(
+																		projectForm.screenshotUrl,
+																	)
+																		? "uploaded screenshot saved"
+																		: "https://..."
+																}
+																type="text"
+																value={
+																	isUploadedScreenshot(
+																		projectForm.screenshotUrl,
+																	)
+																		? ""
+																		: projectForm.screenshotUrl
+																}
+															/>
+															<small>
+																Paste an image URL or upload a PNG, JPG, GIF, or
+																WebP under 1 MB.
+															</small>
+															{activeProjectMode !== "view" ? (
+																<div className="screenshot-upload-row">
+																	<input
+																		accept="image/png,image/jpeg,image/gif,image/webp"
+																		onChange={uploadScreenshot}
+																		type="file"
+																	/>
+																	{isUploadedScreenshot(
+																		projectForm.screenshotUrl,
+																	) ? (
+																		<button
+																			onClick={() =>
+																				updateProjectForm("screenshotUrl", "")
+																			}
+																			type="button"
+																		>
+																			remove upload
+																		</button>
+																	) : null}
+																</div>
+															) : null}
+															{screenshotUploadError ? (
+																<small className="form-error">
+																	{screenshotUploadError}
+																</small>
+															) : null}
+															{isUploadedScreenshot(
+																projectForm.screenshotUrl,
+															) ? (
+																// biome-ignore lint/performance/noImgElement: data-url upload previews cannot be optimized by next/image.
+																<img
+																	alt="Uploaded screenshot preview"
+																	className="screenshot-preview"
+																	src={projectForm.screenshotUrl}
+																/>
+															) : null}
+														</label>
+														<label>
+															What did you build?
+															<textarea
+																disabled={activeProjectMode === "view"}
+																maxLength={700}
+																minLength={20}
+																onChange={(event) =>
+																	updateProjectForm(
+																		"description",
+																		event.target.value,
+																	)
+																}
+																required
+																rows={4}
+																value={projectForm.description}
+															/>
+														</label>
+														{activeProjectMode !== "view" ? (
+															<div className="project-submit-row">
+																<button
+																	disabled={
+																		createProject.isPending ||
+																		updateProject.isPending
+																	}
+																	type="submit"
+																>
+																	{createProject.isPending ||
+																	updateProject.isPending
+																		? "saving..."
+																		: editingProjectId
+																			? "Save Changes"
+																			: "+ Add Project"}
+																</button>
+															</div>
+														) : null}
+													</>
+												)}
 												{createProject.error ? (
 													<p className="form-error">
 														{createProject.error.message}
+													</p>
+												) : null}
+												{submitProjectForReview.error &&
+												activeProjectMode === "submission" ? (
+													<p className="form-error">
+														{submitProjectForReview.error.message}
 													</p>
 												) : null}
 											</form>
@@ -1050,17 +1469,54 @@ export default function Home() {
 														{projectsQuery.data.map((project) => (
 															<li key={project.id}>
 																<div>
-																	<span>{project.status}</span>
+																	<span>
+																		{projectStatusLabel(project.status)}
+																	</span>
 																	<strong>{project.name}</strong>
 																	<p>{project.description}</p>
 																</div>
-																<div className="project-links">
-																	<a href={project.playableUrl}>play</a>
-																	<a href={project.codebaseUrl}>code</a>
-																	{project.screenshotUrl ? (
-																		<a href={project.screenshotUrl}>shot</a>
-																	) : null}
+																<div className="project-actions">
+																	<div className="project-links">
+																		{project.status === "draft" ? (
+																			<button
+																				disabled={
+																					submitProjectForReview.isPending
+																				}
+																				onClick={() =>
+																					startProjectSubmission(project.id)
+																				}
+																				type="button"
+																			>
+																				submit
+																				<span aria-hidden="true">→</span>
+																			</button>
+																		) : (
+																			<button
+																				onClick={() => viewProject(project)}
+																				type="button"
+																			>
+																				view
+																			</button>
+																		)}
+																		<button
+																			disabled={project.status !== "draft"}
+																			onClick={() => editProject(project)}
+																			type="button"
+																		>
+																			edit
+																		</button>
+																	</div>
 																</div>
+																{project.status !== "draft" ? (
+																	<small className="project-support-note">
+																		Submitted projects are final. Need help? Ask
+																		in{" "}
+																		<a href="https://hackclub.slack.com/archives/C08MUA0LGEV">
+																			#widget
+																		</a>{" "}
+																		on Slack.
+																	</small>
+																) : null}
 															</li>
 														))}
 													</ul>
@@ -1074,11 +1530,9 @@ export default function Home() {
 										</div>
 									) : (
 										<section className="platform-locked">
-											<strong>Hack Club Auth protects submissions</strong>
-											<p>
-												Project data is available only after the server verifies
-												your Hack Club account and tRPC attaches your session.
-											</p>
+											<a className="platform-login" href="/api/auth/login">
+												sign in with Hack Club
+											</a>
 										</section>
 									)}
 								</div>
@@ -1119,7 +1573,6 @@ export default function Home() {
 											→
 										</span>
 									</button>
-
 									<ul aria-label="Widget steps" className="step-strip">
 										<li className="step-item">
 											<div className="step-chip">
@@ -1152,29 +1605,21 @@ export default function Home() {
 										<li className="step-item">
 											<div className="step-chip">
 												<span className="tiny-window" />
-												Get Merch, Prizes, and More!
+												Get Merch, Prizes, & More!
 											</div>
 											<div className="panel-content merch-panel">
 												<span>shop preview</span>
 												<strong>Browse the prize shop</strong>
 												<p>
-													Find browser merch, sticker packs, web grants, and
-													desk gear after you ship.
+													Browser merch, sticker packs, web grants, and desk
+													gear — yours after you ship.
 												</p>
-												<ul aria-label="Prize ideas" className="prize-stack">
-													{prizeStack.map((prize, index) => (
-														<li
-															className={`prize-card prize-card-${index + 1}`}
-															key={`${prize.category}-${prize.title}`}
-														>
-															<span>{prize.category}</span>
-															<strong>{prize.title}</strong>
-															<small>{prize.detail}</small>
-														</li>
-													))}
-												</ul>
-												<button onClick={openShopTab} type="button">
-													open shop
+												<button
+													className="shop-cta-button"
+													onClick={openShopTab}
+													type="button"
+												>
+													View the Shop →
 												</button>
 											</div>
 										</li>
@@ -1231,6 +1676,18 @@ export default function Home() {
 						</aside>
 					) : null}
 
+					<div className="support-banner">
+						<span aria-hidden="true">★</span>
+						Need help?{" "}
+						<a
+							href="https://hackclub.enterprise.slack.com/archives/C0BHJB5HXUJ"
+							rel="noreferrer"
+							target="_blank"
+						>
+							Ask in <strong>#widget</strong> on Slack
+						</a>
+						<span aria-hidden="true"> →</span>
+					</div>
 					<footer className="status-bar">
 						<button
 							aria-expanded={isPunchcardOpen}

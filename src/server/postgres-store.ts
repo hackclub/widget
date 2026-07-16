@@ -297,6 +297,150 @@ export async function createProject(project: Project) {
 	return project;
 }
 
+export async function updateProject(
+	ownerId: string,
+	projectId: string,
+	input: {
+		codebaseUrl: string;
+		description: string;
+		name: string;
+		playableUrl: string;
+		screenshotUrl: string | null;
+	},
+) {
+	await databaseReady();
+
+	const now = new Date().toISOString();
+	const rows = await sql<
+		{
+			codebase_url: string;
+			created_at: Date;
+			description: string;
+			hack_club_info: string;
+			id: string;
+			name: string;
+			owner_id: string;
+			playable_url: string;
+			screenshot_url: string | null;
+			status: ProjectStatus;
+			updated_at: Date;
+		}[]
+	>`
+		UPDATE widget_projects
+		SET
+			name = ${input.name},
+			playable_url = ${input.playableUrl},
+			codebase_url = ${input.codebaseUrl},
+			screenshot_url = ${input.screenshotUrl},
+			description = ${input.description},
+			updated_at = ${now}
+		WHERE id = ${projectId}
+			AND owner_id = ${ownerId}
+			AND status = 'draft'
+		RETURNING
+			id,
+			owner_id,
+			name,
+			playable_url,
+			codebase_url,
+			screenshot_url,
+			description,
+			hack_club_info,
+			status,
+			created_at,
+			updated_at
+	`;
+
+	return rows[0] ? rowToProject(rows[0]) : null;
+}
+
+export async function submitProjectForReview(
+	ownerId: string,
+	projectId: string,
+) {
+	await databaseReady();
+
+	const now = new Date().toISOString();
+	const rows = await sql<
+		{
+			codebase_url: string;
+			created_at: Date;
+			description: string;
+			hack_club_info: string;
+			id: string;
+			name: string;
+			owner_id: string;
+			playable_url: string;
+			screenshot_url: string | null;
+			status: ProjectStatus;
+			updated_at: Date;
+		}[]
+	>`
+		UPDATE widget_projects
+		SET status = 'pending', updated_at = ${now}
+		WHERE id = ${projectId}
+			AND owner_id = ${ownerId}
+			AND status = 'draft'
+		RETURNING
+			id,
+			owner_id,
+			name,
+			playable_url,
+			codebase_url,
+			screenshot_url,
+			description,
+			hack_club_info,
+			status,
+			created_at,
+			updated_at
+	`;
+
+	return rows[0] ? rowToProject(rows[0]) : null;
+}
+
+export async function getDraftProjectForOwner(
+	ownerId: string,
+	projectId: string,
+) {
+	await databaseReady();
+
+	const projects = await sql<
+		{
+			codebase_url: string;
+			created_at: Date;
+			description: string;
+			hack_club_info: string;
+			id: string;
+			name: string;
+			owner_id: string;
+			playable_url: string;
+			screenshot_url: string | null;
+			status: ProjectStatus;
+			updated_at: Date;
+		}[]
+	>`
+		SELECT
+			id,
+			owner_id,
+			name,
+			playable_url,
+			codebase_url,
+			screenshot_url,
+			description,
+			hack_club_info,
+			status,
+			created_at,
+			updated_at
+		FROM widget_projects
+		WHERE id = ${projectId}
+			AND owner_id = ${ownerId}
+			AND status = 'draft'
+		LIMIT 1
+	`;
+
+	return projects[0] ? rowToProject(projects[0]) : null;
+}
+
 function projectShipId(projectId: string) {
 	return `ship_${projectId}`;
 }
