@@ -33,7 +33,10 @@ export async function GET(request: NextRequest) {
 			state,
 		});
 
-		const response = redirectWithClearedState(request, "/?platform=1");
+		const response = redirectWithClearedState(
+			request,
+			"/?platform=1&auth=success",
+		);
 		response.cookies.set(
 			sessionCookieName,
 			session.sessionId,

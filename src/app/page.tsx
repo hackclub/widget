@@ -445,7 +445,19 @@ export default function Home() {
 			setIsPlatformTabOpen(true);
 			setActiveTab("platform");
 		}
-	}, []);
+
+		if (params.get("auth") === "success") {
+			void sessionQuery.refetch();
+			params.delete("auth");
+
+			const nextSearch = params.toString();
+			window.history.replaceState(
+				null,
+				"",
+				`${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`,
+			);
+		}
+	}, [sessionQuery.refetch]);
 
 	useEffect(() => {
 		if (!addressMessage) {
