@@ -1040,50 +1040,55 @@ button {
 }
 
 .eligibility-strip {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	gap: 8px;
-	margin-top: 14px;
+	display: flex;
+	width: fit-content;
+	max-width: 100%;
+	align-items: center;
+	gap: 10px;
+	margin-top: 12px;
+	border: 1px solid rgba(0, 51, 153, 0.3);
+	background: rgba(255, 255, 255, 0.72);
+	padding: 6px;
+	box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.16);
 }
 
 .eligibility-strip > div {
-	border-color: #ffffff #606060 #606060 #ffffff;
-	border-style: solid;
-	border-width: 2px;
-	background: #fffdf5;
-	padding: 9px 10px;
-	box-shadow: inset 1px 1px 0 #efefef;
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
 }
 
 .eligibility-strip span,
 .eligibility-strip strong {
-	display: block;
+	display: inline;
 }
 
 .eligibility-strip span {
 	color: #003399;
-	font-size: 0.7rem;
+	font-size: 0.66rem;
 	font-weight: 950;
 	text-transform: uppercase;
 }
 
 .eligibility-strip strong {
-	margin-top: 3px;
 	color: #111111;
-	font-size: clamp(0.9rem, 1.4vw, 1.08rem);
+	font-size: clamp(0.78rem, 1.05vw, 0.95rem);
 	line-height: 1.15;
 }
 
 .eligibility-strip > div:last-child {
-	min-width: 120px;
+	border-color: #ffffff #606060 #606060 #ffffff;
+	border-style: solid;
+	border-width: 2px;
 	background: #ffdf34;
-	text-align: center;
+	padding: 4px 7px;
+	box-shadow: inset 1px 1px 0 #fff7a8;
 }
 
 .eligibility-strip > div:last-child strong {
 	color: #001a66;
 	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
-	font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+	font-size: clamp(0.98rem, 1.5vw, 1.18rem);
 	letter-spacing: 0;
 }
 
@@ -2508,7 +2513,12 @@ button {
 	}
 
 	.eligibility-strip {
-		grid-template-columns: 1fr;
+		width: 100%;
+		flex-wrap: wrap;
+	}
+
+	.eligibility-strip > div {
+		flex: 1 1 180px;
 	}
 
 	.platform-hero,
