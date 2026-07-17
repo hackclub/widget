@@ -119,87 +119,6 @@ export function createAuthUrl(origin: string, state: string) {
 	return authorizeUrl;
 }
 
-export async function createAuthRedirect(origin: string) {
-	const state = crypto.randomUUID();
-	const cookieStore = await cookies();
-	cookieStore.set(stateCookieName, state, {
-		httpOnly: true,
-		maxAge: stateMaxAge,
-		path: "/",
-		sameSite: "lax",
-		secure: secureCookies(),
-	});
-
-	return createAuthUrl(origin, state);
-}
-
-export async function consumeOAuthCallback(input: {
-	code: string;
-	origin: string;
-	state: string | null;
-}) {
-	const cookieStore = await cookies();
-	const expectedState = cookieStore.get(stateCookieName)?.value;
-	cookieStore.delete(stateCookieName);
-
-	if (!expectedState || expectedState !== input.state) {
-		throw new Error("Invalid OAuth state.");
-	}
-
-	const tokenResponse = await fetch(`${authBaseUrl}/oauth/token`, {
-		body: JSON.stringify({
-			client_id: getHackClubClientId(),
-			client_secret: getHackClubClientSecret(),
-			code: input.code,
-			grant_type: "authorization_code",
-			redirect_uri: getRedirectUri(input.origin),
-		}),
-		headers: {
-			"content-type": "application/json",
-		},
-		method: "POST",
-	});
-
-	if (!tokenResponse.ok) {
-		throw new Error("Hack Club token exchange failed.");
-	}
-
-	const token = tokenResponseSchema.parse(await tokenResponse.json());
-	const profileResponse = await fetch(`${authBaseUrl}/api/v1/me`, {
-		headers: {
-			authorization: `Bearer ${token.access_token}`,
-		},
-	});
-
-	if (!profileResponse.ok) {
-		throw new Error("Hack Club profile lookup failed.");
-	}
-
-	const profileRoot = profileSchema.parse(await profileResponse.json());
-	const user = buildAuthUser(profileRoot, crypto.randomUUID());
-	const sessionId = crypto.randomUUID();
-	const now = Date.now();
-	const expiresAt = new Date(now + token.expires_in * 1000).toISOString();
-
-	const session: Session = {
-		accessToken: token.access_token,
-		createdAt: new Date(now).toISOString(),
-		expiresAt,
-		refreshToken: token.refresh_token ?? null,
-		user,
-	};
-
-	await saveSession(sessionId, session);
-
-	cookieStore.set(sessionCookieName, sessionId, {
-		httpOnly: true,
-		maxAge: Math.min(sessionMaxAge, token.expires_in),
-		path: "/",
-		sameSite: "lax",
-		secure: secureCookies(),
-	});
-}
-
 export async function createOAuthSession(input: {
 	code: string;
 	origin: string;
@@ -283,13 +202,10 @@ export function oauthStateCookieOptions() {
 	};
 }
 
-export function stateCookieOptions() {
+export function clearStateCookieOptions() {
 	return {
-		httpOnly: true,
+		...oauthStateCookieOptions(),
 		maxAge: 0,
-		path: "/",
-		sameSite: "lax" as const,
-		secure: secureCookies(),
 	};
 }
 
