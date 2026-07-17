@@ -108,6 +108,10 @@ export function getRedirectUri(origin: string) {
 	return `https://${redirectUri}`;
 }
 
+export function getPublicAppUrl(path: string, origin: string) {
+	return new URL(path, new URL(getRedirectUri(origin)).origin);
+}
+
 export function createAuthUrl(origin: string, state: string) {
 	const authorizeUrl = new URL("/oauth/authorize", authBaseUrl);
 	authorizeUrl.searchParams.set("client_id", getHackClubClientId());

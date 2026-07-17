@@ -3,13 +3,16 @@ import { type NextRequest, NextResponse } from "next/server";
 import {
 	clearStateCookieOptions,
 	createOAuthSession,
+	getPublicAppUrl,
 	sessionCookieName,
 	sessionCookieOptions,
 	stateCookieName,
 } from "~/server/auth";
 
 function redirectWithClearedState(request: NextRequest, path: string) {
-	const response = NextResponse.redirect(new URL(path, request.url));
+	const response = NextResponse.redirect(
+		getPublicAppUrl(path, request.nextUrl.origin),
+	);
 	response.cookies.set(stateCookieName, "", clearStateCookieOptions());
 
 	return response;
