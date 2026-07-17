@@ -19,6 +19,10 @@ export type Project = {
 	updatedAt: string;
 };
 
+export type ProjectListItem = Project & {
+	hasUploadedScreenshot: boolean;
+};
+
 export type ProjectStatus =
 	| "draft"
 	| "pending"
@@ -532,6 +536,7 @@ export async function listProjectsForOwner(ownerId: string) {
 			created_at: Date;
 			description: string;
 			hack_club_info: string;
+			has_uploaded_screenshot: boolean;
 			id: string;
 			name: string;
 			owner_id: string;
@@ -547,7 +552,11 @@ export async function listProjectsForOwner(ownerId: string) {
 			name,
 			playable_url,
 			codebase_url,
-			screenshot_url,
+			CASE
+				WHEN screenshot_url LIKE 'data:image/%' THEN NULL
+				ELSE screenshot_url
+			END AS screenshot_url,
+			COALESCE(screenshot_url LIKE 'data:image/%', false) AS has_uploaded_screenshot,
 			description,
 			hack_club_info,
 			status,
@@ -559,7 +568,18 @@ export async function listProjectsForOwner(ownerId: string) {
 		LIMIT 100
 	`;
 
-	return projects.map(rowToProject);
+	return projects.map(rowToProjectListItem);
+}
+
+function rowToProjectListItem(
+	project: Parameters<typeof rowToProject>[0] & {
+		has_uploaded_screenshot: boolean;
+	},
+): ProjectListItem {
+	return {
+		...rowToProject(project),
+		hasUploadedScreenshot: project.has_uploaded_screenshot,
+	};
 }
 
 export async function getSidekickStats() {

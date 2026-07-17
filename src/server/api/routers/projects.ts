@@ -12,6 +12,8 @@ import {
 	updateProject,
 } from "~/server/postgres-store";
 
+const keepExistingScreenshotValue = "__widget_keep_existing_screenshot__";
+
 function normalizeUrl(value: string, ctx: z.RefinementCtx) {
 	const trimmedValue = value.trim();
 	const urlValue = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmedValue)
@@ -73,6 +75,13 @@ const projectInput = z.object({
 	screenshotUrl: screenshotSchema,
 	status: z.enum(["draft", "submitted"]),
 });
+const projectUpdateInput = projectInput.extend({
+	projectId: z.string().uuid(),
+	screenshotUrl: z.union([
+		z.literal(keepExistingScreenshotValue),
+		screenshotSchema,
+	]),
+});
 
 const finalSubmissionInput = z.object({
 	estimatedHoursSpent: z.coerce.number().min(0.25).max(500),
@@ -80,6 +89,24 @@ const finalSubmissionInput = z.object({
 	hackatimeProjectUrl: hackatimeUrlSchema,
 	projectId: z.string().uuid(),
 });
+
+function isUploadedScreenshot(value: string | null) {
+	return value?.startsWith("data:image/") ?? false;
+}
+
+function projectForClient(project: Project | null) {
+	if (!project) {
+		return null;
+	}
+
+	return {
+		...project,
+		hasUploadedScreenshot: isUploadedScreenshot(project.screenshotUrl),
+		screenshotUrl: isUploadedScreenshot(project.screenshotUrl)
+			? null
+			: project.screenshotUrl,
+	};
+}
 
 export const projectsRouter = createTRPCRouter({
 	create: protectedProcedure
@@ -96,7 +123,7 @@ export const projectsRouter = createTRPCRouter({
 				updatedAt: now,
 			};
 
-			return createProject(project);
+			return projectForClient(await createProject(project));
 		}),
 
 	listMine: protectedProcedure.query(({ ctx }) => {
@@ -154,18 +181,28 @@ export const projectsRouter = createTRPCRouter({
 				});
 			}
 
-			return submitProjectForReview(ctx.session.user.id, input.projectId);
+			return projectForClient(
+				await submitProjectForReview(ctx.session.user.id, input.projectId),
+			);
 		}),
 
 	update: protectedProcedure
-		.input(projectInput.extend({ projectId: z.string().uuid() }))
+		.input(projectUpdateInput)
 		.mutation(async ({ ctx, input }) => {
+			const existingProject =
+				input.screenshotUrl === keepExistingScreenshotValue
+					? await getDraftProjectForOwner(ctx.session.user.id, input.projectId)
+					: null;
+
 			return updateProject(ctx.session.user.id, input.projectId, {
 				codebaseUrl: input.codebaseUrl,
 				description: input.description,
 				name: input.name,
 				playableUrl: input.playableUrl,
-				screenshotUrl: input.screenshotUrl,
-			});
+				screenshotUrl:
+					input.screenshotUrl === keepExistingScreenshotValue
+						? (existingProject?.screenshotUrl ?? null)
+						: input.screenshotUrl,
+			}).then(projectForClient);
 		}),
 });

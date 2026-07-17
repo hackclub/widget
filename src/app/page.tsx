@@ -338,6 +338,7 @@ const emptyProjectForm: ProjectFormState = {
 	playableUrl: "",
 	screenshotUrl: "",
 };
+const keepExistingScreenshotValue = "__widget_keep_existing_screenshot__";
 
 const emptySubmissionForm: SubmissionFormState = {
 	estimatedHoursSpent: "",
@@ -365,6 +366,7 @@ export default function Home() {
 		onSuccess: async () => {
 			setProjectForm(emptyProjectForm);
 			setEditingProjectId(null);
+			setPreservedScreenshotProjectId(null);
 			setActiveProjectMode("create");
 			await utils.projects.listMine.invalidate();
 		},
@@ -373,6 +375,7 @@ export default function Home() {
 		onSuccess: async () => {
 			setProjectForm(emptyProjectForm);
 			setEditingProjectId(null);
+			setPreservedScreenshotProjectId(null);
 			setActiveProjectMode("create");
 			await utils.projects.listMine.invalidate();
 		},
@@ -381,6 +384,7 @@ export default function Home() {
 		onSuccess: async () => {
 			setActiveProjectMode("create");
 			setProjectForm(emptyProjectForm);
+			setPreservedScreenshotProjectId(null);
 			setSubmittingProjectId(null);
 			setSubmissionForm(emptySubmissionForm);
 			await utils.projects.listMine.invalidate();
@@ -393,6 +397,8 @@ export default function Home() {
 		string | null
 	>(null);
 	const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+	const [preservedScreenshotProjectId, setPreservedScreenshotProjectId] =
+		useState<string | null>(null);
 	const [activeProjectMode, setActiveProjectMode] = useState<
 		"create" | "edit" | "submission" | "view"
 	>("create");
@@ -425,6 +431,10 @@ export default function Home() {
 	const submittingProject = projectsQuery.data?.find((project) => {
 		return project.id === submittingProjectId;
 	});
+	const isPreservingUploadedScreenshot =
+		Boolean(editingProjectId) &&
+		preservedScreenshotProjectId === editingProjectId &&
+		projectForm.screenshotUrl === "";
 	const alreadyHereTimeout = useRef<number | null>(null);
 	const goButtonWrapRef = useRef<HTMLDivElement>(null);
 	const addressByTab: Record<BrowserTab, string> = {
@@ -775,6 +785,7 @@ export default function Home() {
 	) {
 		if (field === "screenshotUrl") {
 			setScreenshotUploadError(null);
+			setPreservedScreenshotProjectId(null);
 		}
 
 		setProjectForm((current) => ({
@@ -838,6 +849,11 @@ export default function Home() {
 			updateProject.mutate({
 				...projectForm,
 				projectId: editingProjectId,
+				screenshotUrl:
+					preservedScreenshotProjectId === editingProjectId &&
+					projectForm.screenshotUrl === ""
+						? keepExistingScreenshotValue
+						: projectForm.screenshotUrl,
 				status: "draft",
 			});
 			return;
@@ -855,12 +871,16 @@ export default function Home() {
 		id: string;
 		name: string;
 		playableUrl: string;
+		hasUploadedScreenshot?: boolean;
 		screenshotUrl: string | null;
 	}) {
 		setEditingProjectId(project.id);
 		setSubmittingProjectId(null);
 		setActiveProjectMode("edit");
 		setScreenshotUploadError(null);
+		setPreservedScreenshotProjectId(
+			project.hasUploadedScreenshot ? project.id : null,
+		);
 		setProjectForm({
 			codebaseUrl: project.codebaseUrl,
 			description: project.description,
@@ -876,12 +896,16 @@ export default function Home() {
 		id: string;
 		name: string;
 		playableUrl: string;
+		hasUploadedScreenshot?: boolean;
 		screenshotUrl: string | null;
 	}) {
 		setEditingProjectId(project.id);
 		setSubmittingProjectId(null);
 		setActiveProjectMode("view");
 		setScreenshotUploadError(null);
+		setPreservedScreenshotProjectId(
+			project.hasUploadedScreenshot ? project.id : null,
+		);
 		setProjectForm({
 			codebaseUrl: project.codebaseUrl,
 			description: project.description,
@@ -894,6 +918,7 @@ export default function Home() {
 	function resetProjectForm() {
 		setEditingProjectId(null);
 		setActiveProjectMode("create");
+		setPreservedScreenshotProjectId(null);
 		setSubmittingProjectId(null);
 		setProjectForm(emptyProjectForm);
 		setSubmissionForm(emptySubmissionForm);
@@ -1409,6 +1434,7 @@ export default function Home() {
 																	)
 																}
 																placeholder={
+																	isPreservingUploadedScreenshot ||
 																	isUploadedScreenshot(
 																		projectForm.screenshotUrl,
 																	)
@@ -1428,6 +1454,9 @@ export default function Home() {
 																Paste an image URL or upload a PNG, JPG, GIF, or
 																WebP under 1 MB.
 															</small>
+															{isPreservingUploadedScreenshot ? (
+																<small>Uploaded screenshot saved.</small>
+															) : null}
 															{activeProjectMode !== "view" ? (
 																<div className="screenshot-upload-row">
 																	<input
@@ -1435,13 +1464,15 @@ export default function Home() {
 																		onChange={uploadScreenshot}
 																		type="file"
 																	/>
-																	{isUploadedScreenshot(
+																	{isPreservingUploadedScreenshot ||
+																	isUploadedScreenshot(
 																		projectForm.screenshotUrl,
 																	) ? (
 																		<button
-																			onClick={() =>
-																				updateProjectForm("screenshotUrl", "")
-																			}
+																			onClick={() => {
+																				setPreservedScreenshotProjectId(null);
+																				updateProjectForm("screenshotUrl", "");
+																			}}
 																			type="button"
 																		>
 																			remove upload
