@@ -71,6 +71,20 @@ function secureCookies() {
 	return env.NODE_ENV === "production";
 }
 
+function cookieDomain() {
+	const hostname = new URL(getRedirectUri("http://localhost")).hostname;
+
+	if (
+		hostname === "localhost" ||
+		hostname === "0.0.0.0" ||
+		!hostname.includes(".")
+	) {
+		return undefined;
+	}
+
+	return hostname;
+}
+
 function cleanEnvValue(value: string) {
 	const trimmed = value.trim();
 	const withoutMatchingQuotes =
@@ -198,6 +212,7 @@ export async function createOAuthSession(input: {
 
 export function sessionCookieOptions(maxAge: number) {
 	return {
+		domain: cookieDomain(),
 		httpOnly: true,
 		maxAge,
 		path: "/",
@@ -208,6 +223,7 @@ export function sessionCookieOptions(maxAge: number) {
 
 export function oauthStateCookieOptions() {
 	return {
+		domain: cookieDomain(),
 		httpOnly: true,
 		maxAge: stateMaxAge,
 		path: "/",
@@ -375,6 +391,7 @@ export async function clearSessionCookie() {
 	}
 
 	cookieStore.set(sessionCookieName, "", {
+		domain: cookieDomain(),
 		expires: new Date(0),
 		httpOnly: true,
 		path: "/",
