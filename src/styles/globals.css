@@ -1039,6 +1039,54 @@ button {
 	text-shadow: 1px 1px 0 #ffffff;
 }
 
+.eligibility-strip {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 8px;
+	margin-top: 14px;
+}
+
+.eligibility-strip > div {
+	border-color: #ffffff #606060 #606060 #ffffff;
+	border-style: solid;
+	border-width: 2px;
+	background: #fffdf5;
+	padding: 9px 10px;
+	box-shadow: inset 1px 1px 0 #efefef;
+}
+
+.eligibility-strip span,
+.eligibility-strip strong {
+	display: block;
+}
+
+.eligibility-strip span {
+	color: #003399;
+	font-size: 0.7rem;
+	font-weight: 950;
+	text-transform: uppercase;
+}
+
+.eligibility-strip strong {
+	margin-top: 3px;
+	color: #111111;
+	font-size: clamp(0.9rem, 1.4vw, 1.08rem);
+	line-height: 1.15;
+}
+
+.eligibility-strip > div:last-child {
+	min-width: 120px;
+	background: #ffdf34;
+	text-align: center;
+}
+
+.eligibility-strip > div:last-child strong {
+	color: #001a66;
+	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
+	font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+	letter-spacing: 0;
+}
+
 .primary-retro {
 	display: inline-flex;
 	align-items: center;
@@ -2457,6 +2505,10 @@ button {
 	.widget-lockup {
 		align-items: flex-start;
 		flex-direction: column;
+	}
+
+	.eligibility-strip {
+		grid-template-columns: 1fr;
 	}
 
 	.platform-hero,

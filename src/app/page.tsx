@@ -1788,6 +1788,19 @@ export default function Home() {
 											</span>{" "}
 											by Barnav @ Hack Club
 										</div>
+										<div className="eligibility-strip">
+											<div>
+												<span>eligible builds</span>
+												<strong>
+													Chrome, Firefox, and any browser extension or widget
+													counts.
+												</strong>
+											</div>
+											<div>
+												<span>deadline</span>
+												<strong>July 31</strong>
+											</div>
+										</div>
 									</section>
 
 									<button
