@@ -173,6 +173,12 @@ const prizeTiers: PrizeTier[] = [
 				imageAlt: "Chrome Web Store bag icon",
 				imageSrc: "/chrome-webstore-license.png",
 			},
+			{
+				title: "One Key Keychain",
+				detail: "A tiny one-key macropad keychain for shortcut energy.",
+				imageAlt: "One key macropad keychain with a paw keycap",
+				imageSrc: "/one-key-macropad.png",
+			},
 		],
 	},
 	{
@@ -185,10 +191,10 @@ const prizeTiers: PrizeTier[] = [
 				imageSrc: "/domain-grant.png",
 			},
 			{
-				title: "One Key Macropad",
-				detail: "A tiny desk button for shortcuts, demos, and vibes.",
-				imageAlt: "One key macropad with a paw keycap",
-				imageSrc: "/one-key-macropad.png",
+				title: "Four Key Macropad",
+				detail: "A compact four-button macro pad for shortcuts and demos.",
+				imageAlt: "Four key macropad with black keycaps",
+				imageSrc: "/four-key-macropad.jpeg",
 			},
 			{
 				title: "Browser Sticker Sheet",
