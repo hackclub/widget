@@ -1,19 +1,26 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import {
+	clearStateCookieOptions,
 	createOAuthSession,
 	sessionCookieName,
 	sessionCookieOptions,
 	stateCookieName,
-	stateCookieOptions,
 } from "~/server/auth";
+
+function redirectWithClearedState(request: NextRequest, path: string) {
+	const response = NextResponse.redirect(new URL(path, request.url));
+	response.cookies.set(stateCookieName, "", clearStateCookieOptions());
+
+	return response;
+}
 
 export async function GET(request: NextRequest) {
 	const code = request.nextUrl.searchParams.get("code");
 	const state = request.nextUrl.searchParams.get("state");
 
 	if (!code) {
-		return NextResponse.redirect(new URL("/?auth=missing-code", request.url));
+		return redirectWithClearedState(request, "/?auth=missing-code");
 	}
 
 	try {
@@ -23,21 +30,15 @@ export async function GET(request: NextRequest) {
 			state,
 		});
 
-		const response = NextResponse.redirect(new URL("/?platform=1", request.url));
+		const response = redirectWithClearedState(request, "/?platform=1");
 		response.cookies.set(
 			sessionCookieName,
 			session.sessionId,
 			sessionCookieOptions(session.maxAge),
 		);
-		response.cookies.set(stateCookieName, "", stateCookieOptions());
 
 		return response;
 	} catch {
-		const response = NextResponse.redirect(
-			new URL("/?platform=1&auth=failed", request.url),
-		);
-		response.cookies.set(stateCookieName, "", stateCookieOptions());
-
-		return response;
+		return redirectWithClearedState(request, "/?platform=1&auth=failed");
 	}
 }
