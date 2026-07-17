@@ -41,6 +41,16 @@ type SubmissionFormState = {
 	hackatimeProjectUrl: string;
 };
 
+type PlatformSession = {
+	expiresAt: string;
+	user: {
+		email: string | null;
+		id: string;
+		name: string;
+		slackId: string | null;
+	};
+};
+
 const ideas = [
 	"highlight every deadline on any site",
 	"turn new tabs into a tiny plant garden",
@@ -344,7 +354,10 @@ export default function Home() {
 		refetchOnWindowFocus: true,
 		staleTime: 0,
 	});
-	const session = sessionQuery.data;
+	const [directSession, setDirectSession] = useState<PlatformSession | null>(
+		null,
+	);
+	const session = directSession ?? sessionQuery.data;
 	const projectsQuery = api.projects.listMine.useQuery(undefined, {
 		enabled: Boolean(session),
 	});
@@ -433,6 +446,20 @@ export default function Home() {
 		(isShopTabClosing && !isGuidesTabOpen && !isPlatformTabOpen) ||
 		(isPlatformTabClosing && !isGuidesTabOpen && !isShopTabOpen);
 
+	const refreshDirectSession = useCallback(async () => {
+		const response = await fetch("/api/auth/me", {
+			cache: "no-store",
+			credentials: "include",
+		});
+
+		if (!response.ok) {
+			setDirectSession(null);
+			return;
+		}
+
+		setDirectSession((await response.json()) as PlatformSession | null);
+	}, []);
+
 	useEffect(() => {
 		if (addressMessage || hasAddressEdit) {
 			return;
@@ -451,6 +478,7 @@ export default function Home() {
 		}
 
 		if (params.get("auth") === "success") {
+			void refreshDirectSession();
 			void utils.auth.me.invalidate().then(() => sessionQuery.refetch());
 			params.delete("auth");
 
@@ -461,7 +489,11 @@ export default function Home() {
 				`${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}`,
 			);
 		}
-	}, [sessionQuery.refetch]);
+	}, [refreshDirectSession, sessionQuery.refetch, utils.auth.me]);
+
+	useEffect(() => {
+		void refreshDirectSession();
+	}, [refreshDirectSession]);
 
 	useEffect(() => {
 		if (!addressMessage) {
