@@ -447,17 +447,30 @@ export default function Home() {
 		(isPlatformTabClosing && !isGuidesTabOpen && !isShopTabOpen);
 
 	const refreshDirectSession = useCallback(async () => {
-		const response = await fetch("/api/auth/me", {
-			cache: "no-store",
-			credentials: "include",
-		});
+		try {
+			const response = await fetch("/api/auth/me", {
+				cache: "no-store",
+				credentials: "include",
+				headers: {
+					accept: "application/json",
+				},
+			});
+			const contentType = response.headers.get("content-type") ?? "";
 
-		if (!response.ok) {
+			if (!response.ok || !contentType.includes("application/json")) {
+				console.error("Direct auth session lookup failed.", {
+					contentType,
+					status: response.status,
+				});
+				setDirectSession(null);
+				return;
+			}
+
+			setDirectSession((await response.json()) as PlatformSession | null);
+		} catch (error) {
+			console.error("Direct auth session lookup crashed.", error);
 			setDirectSession(null);
-			return;
 		}
-
-		setDirectSession((await response.json()) as PlatformSession | null);
 	}, []);
 
 	useEffect(() => {
