@@ -221,7 +221,20 @@ const prizeTiers: PrizeTier[] = [
 	},
 	{
 		hours: 25,
-		rewards: [],
+		rewards: [
+			{
+				title: "Google Streamer 4K",
+				detail: "A 4K Google TV streamer for testing and relaxing.",
+				imageAlt: "Google Streamer 4K with remote",
+				imageSrc: "/google-streamer-4k.jpeg",
+			},
+			{
+				title: 'Lenovo 11.6" 300e Chromebook',
+				detail: "A touchscreen 2-in-1 Chromebook for building anywhere.",
+				imageAlt: "Lenovo 300e Chromebook touchscreen 2 in 1",
+				imageSrc: "/lenovo-300e-chromebook.jpeg",
+			},
+		],
 	},
 	{
 		hours: 50,
