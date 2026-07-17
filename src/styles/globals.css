@@ -1296,7 +1296,7 @@ button {
 	border-color: #ffffff #606060 #606060 #ffffff;
 	border-style: solid;
 	border-width: 2px;
-	background: #d4d0c8;
+	background: #f5f2e8;
 	box-shadow:
 		inset 1px 1px 0 #efefef,
 		5px 5px 0 rgba(0, 0, 0, 0.18);
@@ -1304,9 +1304,9 @@ button {
 
 .shop-table {
 	width: 100%;
-	min-width: 860px;
+	min-width: 1040px;
 	border-collapse: collapse;
-	font-size: 0.86rem;
+	table-layout: fixed;
 }
 
 .shop-table th,
@@ -1315,7 +1315,6 @@ button {
 	border-style: solid;
 	border-width: 1px;
 	padding: 8px;
-	text-align: left;
 	vertical-align: top;
 }
 
@@ -1323,41 +1322,102 @@ button {
 	background: #001a66;
 	color: #ffffff;
 	font-weight: 950;
+	text-align: left;
 	text-shadow: 1px 1px 0 #000000;
 }
 
-.shop-table tbody tr:nth-child(odd) {
-	background: #fff6b8;
-}
-
-.shop-table tbody tr:nth-child(even) {
-	background: #bcd8ff;
-}
-
-.shop-table tbody th {
-	min-width: 250px;
-}
-
-.shop-table tbody th span,
-.shop-table tbody th strong {
+.shop-table thead th span,
+.shop-table thead th strong {
 	display: block;
 }
 
-.shop-table tbody th span {
-	color: #003399;
-	font-size: 0.72rem;
-	font-weight: 950;
+.shop-table thead th span {
+	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
+	font-size: 2rem;
+	line-height: 0.9;
+}
+
+.shop-table thead th strong {
+	margin-top: 3px;
+	font-size: 0.78rem;
 	text-transform: uppercase;
 }
 
-.shop-table tbody th strong {
-	margin-top: 4px;
-	font-size: 1rem;
-	line-height: 1.08;
+.shop-table td {
+	background: #fffdf5;
 }
 
-.shop-table td {
-	font-weight: 900;
+.shop-prize-stack {
+	display: grid;
+	gap: 10px;
+}
+
+.shop-prize-card,
+.shop-prize-empty {
+	display: grid;
+	gap: 8px;
+	min-height: 154px;
+	border: 2px solid #001a66;
+	background: #ffffff;
+	box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+.shop-prize-card {
+	grid-template-rows: 92px 1fr;
+	padding: 8px;
+}
+
+.shop-prize-card img,
+.shop-prize-mark {
+	width: 100%;
+	height: 92px;
+	border: 1px solid #9a9a9a;
+	background: #eef6ff;
+	object-fit: contain;
+}
+
+.shop-prize-mark {
+	display: grid;
+	place-items: center;
+	color: #001a66;
+	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
+	font-size: 3rem;
+}
+
+.shop-prize-card strong,
+.shop-prize-empty strong {
+	display: block;
+	color: #001a66;
+	font-size: 0.98rem;
+	line-height: 1.05;
+}
+
+.shop-prize-card p,
+.shop-prize-empty p {
+	margin: 5px 0 0;
+	color: #303030;
+	font-size: 0.76rem;
+	font-weight: 850;
+	line-height: 1.25;
+}
+
+.shop-prize-empty {
+	align-content: center;
+	padding: 12px;
+	border-style: dashed;
+	background: repeating-linear-gradient(
+		-45deg,
+		#ffffff,
+		#ffffff 8px,
+		#f2f2f2 8px,
+		#f2f2f2 16px
+	);
+}
+
+.shop-prize-empty strong {
+	color: #003399;
+	font-weight: 950;
+	text-transform: uppercase;
 }
 
 .tiny-window {

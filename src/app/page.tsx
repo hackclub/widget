@@ -20,11 +20,15 @@ type WindowDragStart = {
 };
 
 type BrowserTab = "widget" | "guides" | "shop" | "platform";
-type PrizeCard = {
-	category: string;
-	title: string;
+type PrizeReward = {
 	detail: string;
+	imageAlt?: string;
+	imageSrc?: string;
+	title: string;
+};
+type PrizeTier = {
 	hours: number;
+	rewards: PrizeReward[];
 };
 
 type ProjectFormState = {
@@ -159,54 +163,61 @@ const ideas = [
 	"make a browser extension that rewards closing tabs",
 ];
 
-const prizeCards: [PrizeCard, ...PrizeCard[]] = [
+const prizeTiers: PrizeTier[] = [
 	{
-		category: "browser merch",
-		title: "Chrome Dino Encore Sweatshirt",
-		detail: "limited browser gear",
-		hours: 12,
+		hours: 1,
+		rewards: [
+			{
+				title: "Chrome Extension Store License",
+				detail: "Publish your extension on the Chrome Web Store.",
+			},
+		],
 	},
 	{
-		category: "browser stickers",
-		title: "Firefox + Chrome sticker sheet",
-		detail: "cover your laptop",
-		hours: 2,
-	},
-	{
-		category: "widget mice",
-		title: "Tiny cursor mouse",
-		detail: "for extension builders",
-		hours: 5,
-	},
-	{
-		category: "widget keyboard",
-		title: "Clicky shortcut keyboard",
-		detail: "macro keys for the web",
-		hours: 9,
-	},
-	{
-		category: "domain grants",
-		title: "Free domain for your extension",
-		detail: "ship it on the open web",
-		hours: 4,
-	},
-	{
-		category: "web lab",
-		title: "Hosting credits",
-		detail: "keep your demo online",
-		hours: 10,
-	},
-	{
-		category: "desk loot",
-		title: "Browser tab enamel pin",
-		detail: "retro web hardware vibes",
 		hours: 3,
+		rewards: [
+			{
+				title: "$10 Domain Grant",
+				detail: "Put your extension or demo on a real domain.",
+			},
+			{
+				title: "One Key Macropad",
+				detail: "A tiny desk button for shortcuts, demos, and vibes.",
+				imageAlt: "One key macropad with a paw keycap",
+				imageSrc: "/one-key-macropad.png",
+			},
+			{
+				title: "Browser Sticker Sheet",
+				detail: "Chrome, Firefox, and web-builder stickers for your laptop.",
+			},
+		],
+	},
+	{
+		hours: 10,
+		rewards: [
+			{
+				title: "Logitech G502 Hero",
+				detail: "A classic wired mouse for building and gaming.",
+				imageAlt: "Logitech G502 Hero mouse",
+				imageSrc: "/logitech-g502-hero.jpeg",
+			},
+			{
+				title: "Aula S99 Keyboard",
+				detail: "A full-size green-and-cream keyboard for your setup.",
+				imageAlt: "Aula S99 green and cream keyboard",
+				imageSrc: "/aula-s99-keyboard.jpeg",
+			},
+		],
+	},
+	{
+		hours: 25,
+		rewards: [],
+	},
+	{
+		hours: 50,
+		rewards: [],
 	},
 ];
-
-const hourlyEarnings = 8.5;
-const userBudgetPerHour = 4;
-const profitPerHour = hourlyEarnings - userBudgetPerHour;
 
 const addressBarMessages = [
 	"Why would you do anything but Widget?",
@@ -632,17 +643,6 @@ export default function Home() {
 
 	function nextIdea() {
 		setIdeaIndex((current) => (current + 1) % ideas.length);
-	}
-
-	function formatMoney(amount: number) {
-		return `$${amount.toFixed(amount % 1 === 0 ? 0 : 2)}`;
-	}
-
-	function priceRangeForHours(hours: number) {
-		const maxPrice = hours * userBudgetPerHour;
-		const minPrice = hours === 1 ? 0 : (hours - 1) * userBudgetPerHour + 0.01;
-
-		return `${formatMoney(minPrice)}-${formatMoney(maxPrice)}`;
 	}
 
 	function teaseAddressEdit() {
@@ -1181,43 +1181,63 @@ export default function Home() {
 								<div className="main-canvas shop-tab-page">
 									<section className="shop-intro">
 										<span>shop</span>
-										<strong>Pick your web-builder reward</strong>
+										<strong>Pick your build-hours reward</strong>
 										<p>
-											Ship Widget, then choose browser gear, desk tools, or web
-											credits from the prize shop.
+											Ship Widget, log your Hackatime hours, then choose from
+											clean browser-builder rewards.
 										</p>
 									</section>
 									<section
-										aria-label="Shop pricing"
+										aria-label="Shop prizes by hours"
 										className="shop-table-wrap"
 									>
 										<table className="shop-table">
 											<thead>
 												<tr>
-													<th>Reward</th>
-													<th>Price range</th>
-													<th>Hours</th>
-													<th>User budget</th>
-													<th>Gross</th>
-													<th>Profit</th>
+													{prizeTiers.map((tier) => (
+														<th key={tier.hours} scope="col">
+															<span>{tier.hours}</span>
+															<strong>hour{tier.hours === 1 ? "" : "s"}</strong>
+														</th>
+													))}
 												</tr>
 											</thead>
 											<tbody>
-												{prizeCards.map((prize) => (
-													<tr key={`${prize.category}-${prize.title}`}>
-														<th scope="row">
-															<span>{prize.category}</span>
-															<strong>{prize.title}</strong>
-														</th>
-														<td>{priceRangeForHours(prize.hours)}</td>
-														<td>{prize.hours}h</td>
-														<td>
-															{formatMoney(prize.hours * userBudgetPerHour)}
+												<tr>
+													{prizeTiers.map((tier) => (
+														<td key={tier.hours}>
+															{tier.rewards.length ? (
+																<div className="shop-prize-stack">
+																	{tier.rewards.map((reward) => (
+																		<article
+																			className="shop-prize-card"
+																			key={reward.title}
+																		>
+																			{reward.imageSrc ? (
+																				// biome-ignore lint/performance/noImgElement: small static prize images keep the app simple.
+																				<img
+																					alt={reward.imageAlt ?? reward.title}
+																					src={reward.imageSrc}
+																				/>
+																			) : (
+																				<div className="shop-prize-mark">W</div>
+																			)}
+																			<div>
+																				<strong>{reward.title}</strong>
+																				<p>{reward.detail}</p>
+																			</div>
+																		</article>
+																	))}
+																</div>
+															) : (
+																<div className="shop-prize-empty">
+																	<strong>coming soon</strong>
+																	<p>More rewards will be added here.</p>
+																</div>
+															)}
 														</td>
-														<td>{formatMoney(prize.hours * hourlyEarnings)}</td>
-														<td>{formatMoney(prize.hours * profitPerHour)}</td>
-													</tr>
-												))}
+													))}
+												</tr>
 											</tbody>
 										</table>
 									</section>
