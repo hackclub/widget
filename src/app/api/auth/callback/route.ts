@@ -1,25 +1,43 @@
-import { redirect } from "next/navigation";
-import type { NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
-import { consumeOAuthCallback } from "~/server/auth";
+import {
+	createOAuthSession,
+	sessionCookieName,
+	sessionCookieOptions,
+	stateCookieName,
+	stateCookieOptions,
+} from "~/server/auth";
 
 export async function GET(request: NextRequest) {
 	const code = request.nextUrl.searchParams.get("code");
 	const state = request.nextUrl.searchParams.get("state");
 
 	if (!code) {
-		redirect("/?auth=missing-code");
+		return NextResponse.redirect(new URL("/?auth=missing-code", request.url));
 	}
 
 	try {
-		await consumeOAuthCallback({
+		const session = await createOAuthSession({
 			code,
 			origin: request.nextUrl.origin,
 			state,
 		});
-	} catch {
-		redirect("/?auth=failed");
-	}
 
-	redirect("/?platform=1");
+		const response = NextResponse.redirect(new URL("/?platform=1", request.url));
+		response.cookies.set(
+			sessionCookieName,
+			session.sessionId,
+			sessionCookieOptions(session.maxAge),
+		);
+		response.cookies.set(stateCookieName, "", stateCookieOptions());
+
+		return response;
+	} catch {
+		const response = NextResponse.redirect(
+			new URL("/?platform=1&auth=failed", request.url),
+		);
+		response.cookies.set(stateCookieName, "", stateCookieOptions());
+
+		return response;
+	}
 }

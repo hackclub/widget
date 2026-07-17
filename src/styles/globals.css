@@ -1796,6 +1796,10 @@ button {
 	text-align: center;
 }
 
+.platform-locked form {
+	margin: 0;
+}
+
 .platform-user {
 	display: grid;
 	width: min(100%, 220px);
