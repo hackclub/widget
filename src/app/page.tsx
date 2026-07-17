@@ -1530,9 +1530,11 @@ export default function Home() {
 										</div>
 									) : (
 										<section className="platform-locked">
-											<a className="platform-login" href="/api/auth/login">
-												sign in with Hack Club
-											</a>
+											<form action="/api/auth/login" method="get">
+												<button className="platform-login" type="submit">
+													sign in with Hack Club
+												</button>
+											</form>
 										</section>
 									)}
 								</div>
