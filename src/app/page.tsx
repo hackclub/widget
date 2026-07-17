@@ -170,6 +170,8 @@ const prizeTiers: PrizeTier[] = [
 			{
 				title: "Chrome Extension Store License",
 				detail: "Publish your extension on the Chrome Web Store.",
+				imageAlt: "Chrome Web Store bag icon",
+				imageSrc: "/chrome-webstore-license.png",
 			},
 		],
 	},
@@ -179,6 +181,8 @@ const prizeTiers: PrizeTier[] = [
 			{
 				title: "$10 Domain Grant",
 				detail: "Put your extension or demo on a real domain.",
+				imageAlt: "Domain and hosting provider logos",
+				imageSrc: "/domain-grant.png",
 			},
 			{
 				title: "One Key Macropad",
@@ -206,6 +210,12 @@ const prizeTiers: PrizeTier[] = [
 				detail: "A full-size green-and-cream keyboard for your setup.",
 				imageAlt: "Aula S99 green and cream keyboard",
 				imageSrc: "/aula-s99-keyboard.jpeg",
+			},
+			{
+				title: "TS PMO Shirt",
+				detail: "A deeply serious shirt for deeply unserious web builders.",
+				imageAlt: "White TS PMO shirt",
+				imageSrc: "/ts-pmo-shirt.jpeg",
 			},
 		],
 	},
