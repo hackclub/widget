@@ -1241,6 +1241,47 @@ export default function Home() {
 											</tbody>
 										</table>
 									</section>
+									<section aria-label="Shop FAQ" className="shop-faq">
+										<div className="shop-faq-head">
+											<span>faq</span>
+											<strong>Before you pick a prize</strong>
+										</div>
+										<div className="shop-faq-grid">
+											<article>
+												<strong>How do hours work?</strong>
+												<p>
+													Hours come from the Hackatime project you submit with
+													your extension. Pick the tier at or below your
+													approved hours.
+												</p>
+											</article>
+											<article>
+												<strong>When do I choose?</strong>
+												<p>
+													After your project is reviewed, you will be able to
+													choose from the rewards available for your hour tier.
+												</p>
+											</article>
+											<article>
+												<strong>Can I swap later?</strong>
+												<p>
+													Ask in{" "}
+													<a href="https://hackclub.slack.com/archives/C08MUA0LGEV">
+														#widget
+													</a>{" "}
+													before fulfillment starts. After shipping begins,
+													prize choices are final.
+												</p>
+											</article>
+											<article>
+												<strong>What about 25 and 50 hours?</strong>
+												<p>
+													Those tiers are reserved for bigger rewards and will
+													be filled in once the prize list is finalized.
+												</p>
+											</article>
+										</div>
+									</section>
 								</div>
 							) : activeTab === "platform" ? (
 								<div className="main-canvas platform-tab-page">

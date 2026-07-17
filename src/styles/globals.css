@@ -1420,6 +1420,73 @@ button {
 	text-transform: uppercase;
 }
 
+.shop-faq {
+	display: grid;
+	grid-column: 1;
+	gap: 12px;
+	border-color: #ffffff #606060 #606060 #ffffff;
+	border-style: solid;
+	border-width: 2px;
+	background: #d4d0c8;
+	padding: 12px;
+	box-shadow:
+		inset 1px 1px 0 #efefef,
+		5px 5px 0 rgba(0, 0, 0, 0.18);
+}
+
+.shop-faq-head span,
+.shop-faq-head strong {
+	display: block;
+}
+
+.shop-faq-head span {
+	color: #003399;
+	font-size: 0.74rem;
+	font-weight: 950;
+	text-transform: uppercase;
+}
+
+.shop-faq-head strong {
+	margin-top: 3px;
+	color: #001a66;
+	font-size: clamp(1.2rem, 2vw, 1.65rem);
+	line-height: 1.05;
+}
+
+.shop-faq-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.shop-faq article {
+	border-color: #ffffff #808080 #808080 #ffffff;
+	border-style: solid;
+	border-width: 2px;
+	background: #fffdf5;
+	padding: 10px;
+}
+
+.shop-faq article strong {
+	display: block;
+	color: #001a66;
+	font-size: 0.95rem;
+	line-height: 1.05;
+}
+
+.shop-faq article p {
+	margin: 6px 0 0;
+	color: #303030;
+	font-size: 0.82rem;
+	font-weight: 800;
+	line-height: 1.35;
+}
+
+.shop-faq a {
+	color: #003399;
+	font-weight: 950;
+}
+
 .tiny-window {
 	width: 22px;
 	height: 18px;
@@ -2335,6 +2402,7 @@ button {
 	}
 
 	.project-field-grid,
+	.shop-faq-grid,
 	.starter-guides > div {
 		grid-template-columns: 1fr;
 	}
