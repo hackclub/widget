@@ -339,7 +339,11 @@ const maxScreenshotUploadBytes = 1_000_000;
 
 export default function Home() {
 	const utils = api.useUtils();
-	const sessionQuery = api.auth.me.useQuery();
+	const sessionQuery = api.auth.me.useQuery(undefined, {
+		refetchOnMount: "always",
+		refetchOnWindowFocus: true,
+		staleTime: 0,
+	});
 	const session = sessionQuery.data;
 	const projectsQuery = api.projects.listMine.useQuery(undefined, {
 		enabled: Boolean(session),
@@ -447,7 +451,7 @@ export default function Home() {
 		}
 
 		if (params.get("auth") === "success") {
-			void sessionQuery.refetch();
+			void utils.auth.me.invalidate().then(() => sessionQuery.refetch());
 			params.delete("auth");
 
 			const nextSearch = params.toString();

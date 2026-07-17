@@ -180,6 +180,16 @@ export async function createOAuthSession(input: {
 
 	await saveSession(sessionId, session);
 
+	const savedSession = await getSession(sessionId);
+	if (!savedSession) {
+		throw new Error("Saved OAuth session could not be read.");
+	}
+
+	console.log("OAuth session saved", {
+		expiresAt: savedSession.expiresAt,
+		userId: savedSession.user.id,
+	});
+
 	return {
 		maxAge: Math.min(sessionMaxAge, token.expires_in),
 		sessionId,
@@ -222,6 +232,7 @@ export async function getSessionFromHeaders(headers: Headers) {
 		?.slice(sessionCookieName.length + 1);
 
 	if (!sessionId) {
+		console.log("No session cookie on request.");
 		return null;
 	}
 
@@ -229,10 +240,12 @@ export async function getSessionFromHeaders(headers: Headers) {
 	const session = await getSession(decodedSessionId);
 
 	if (!session) {
+		console.log("Session cookie did not match a saved session.");
 		return null;
 	}
 
 	if (Date.parse(session.expiresAt) <= Date.now()) {
+		console.log("Session cookie matched an expired session.");
 		await deleteSession(decodedSessionId);
 		return null;
 	}
