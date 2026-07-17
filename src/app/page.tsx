@@ -1271,6 +1271,14 @@ export default function Home() {
 										</div>
 										<div className="shop-faq-grid">
 											<article>
+												<strong>Is this actually free?</strong>
+												<p>
+													Yes. Build and submit a real browser extension, get it
+													reviewed, and your approved hours unlock prizes at no
+													cost to you.
+												</p>
+											</article>
+											<article>
 												<strong>How do hours work?</strong>
 												<p>
 													Hours come from the Hackatime project you submit with
@@ -1292,15 +1300,8 @@ export default function Home() {
 													<a href="https://hackclub.slack.com/archives/C08MUA0LGEV">
 														#widget
 													</a>{" "}
-													before fulfillment starts. After shipping begins,
-													prize choices are final.
-												</p>
-											</article>
-											<article>
-												<strong>What about 25 and 50 hours?</strong>
-												<p>
-													Those tiers are reserved for bigger rewards and will
-													be filled in once the prize list is finalized.
+													or let the fulfiller know before it ships. Once it is
+													shipped, prize choices are final.
 												</p>
 											</article>
 										</div>
