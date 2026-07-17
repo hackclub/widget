@@ -123,6 +123,7 @@ button {
 	position: relative;
 	display: flex;
 	align-items: center;
+	min-height: 100vh;
 	background-color: #008080;
 	background-image:
 		linear-gradient(45deg, rgba(255, 255, 255, 0.11) 25%, transparent 25%),
@@ -201,8 +202,9 @@ button {
 .os-shell {
 	position: relative;
 	z-index: 2;
-	width: min(100%, 1480px);
-	padding: 0 18px 0 72px;
+	width: min(100%, 1720px);
+	margin: 0 auto;
+	padding: 0 clamp(12px, 2vw, 30px) 0 clamp(64px, 6vw, 112px);
 }
 
 .guides-intro,
@@ -347,7 +349,7 @@ button {
 
 .retro-window {
 	display: flex;
-	min-height: calc(100vh - 2.5rem);
+	min-height: calc(100vh - clamp(1.25rem, 3vw, 2.5rem));
 	flex-direction: column;
 	background: #c0c0c0;
 	animation: window-boot 0.56s steps(5, end) both;
@@ -762,7 +764,7 @@ button {
 .page-stage {
 	position: relative;
 	flex: 1;
-	overflow: hidden;
+	overflow: auto;
 	background:
 		linear-gradient(rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.82)),
 		repeating-linear-gradient(0deg, #e9f5ff 0 2px, #ffffff 2px 4px);
@@ -788,7 +790,7 @@ button {
 	position: relative;
 	display: grid;
 	z-index: 2;
-	width: min(100%, 400px);
+	width: min(100%, 440px);
 	min-height: 100%;
 	align-self: stretch;
 	justify-self: end;
@@ -852,7 +854,7 @@ button {
 	position: relative;
 	z-index: 1;
 	color: #003399;
-	font-size: clamp(2.45rem, 3.9vw, 3.65rem);
+	font-size: clamp(2.45rem, 3.9vw, 3.8rem);
 	font-weight: 950;
 	letter-spacing: 0;
 	line-height: 0.9;
@@ -907,6 +909,8 @@ button {
 }
 
 .hero-copy {
+	display: grid;
+	align-content: start;
 	border: 2px dashed #2b59b7;
 	background: rgba(255, 251, 232, 0.94);
 	box-shadow: 5px 5px 0 #8aa7db;
@@ -915,13 +919,13 @@ button {
 .main-canvas {
 	position: relative;
 	display: grid;
-	min-height: clamp(420px, 52vh, 590px);
+	min-height: max(560px, calc(100vh - 240px));
 	grid-template-columns: minmax(0, 1fr) minmax(330px, 400px);
 	align-content: start;
 	align-items: start;
-	gap: 24px;
-	overflow: hidden;
-	padding: 18px;
+	gap: clamp(18px, 1.7vw, 28px);
+	overflow: clip;
+	padding: clamp(18px, 1.6vw, 26px);
 	border-color: #606060 #ffffff #ffffff #606060;
 	border-style: solid;
 	border-width: 2px;
@@ -957,21 +961,21 @@ button {
 }
 
 .hero-copy {
-	padding: 18px;
+	padding: clamp(18px, 2vw, 34px);
 	animation: hero-enter 0.72s steps(5, end) both;
 }
 
 .widget-lockup {
-	display: flex;
+	display: block;
 	align-items: center;
-	gap: clamp(2rem, 5vw, 5rem);
+	min-width: 0;
 }
 
 .widget-word {
 	margin: 0;
 	color: #001a66;
 	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
-	font-size: clamp(4.8rem, 10vw, 10.5rem);
+	font-size: clamp(4.8rem, 6.8vw, 8.8rem);
 	font-weight: 950;
 	letter-spacing: 0;
 	line-height: 0.78;
@@ -986,8 +990,8 @@ button {
 }
 
 .widget-hero-logo {
-	display: grid;
-	width: clamp(5.25rem, 11vw, 9rem);
+	display: none;
+	width: clamp(5.25rem, 8vw, 9rem);
 	aspect-ratio: 1;
 	place-items: center;
 	border-color: #ffffff #606060 #606060 #ffffff;
@@ -1002,7 +1006,7 @@ button {
 		18px 18px 0 #35c46f;
 	color: #003399;
 	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
-	font-size: clamp(3.6rem, 7vw, 6.6rem);
+	font-size: clamp(3.6rem, 5.5vw, 6.6rem);
 	font-weight: 950;
 	line-height: 1;
 	text-shadow: 3px 3px 0 #ffffff;
@@ -1010,10 +1014,10 @@ button {
 }
 
 .hero-copy p {
-	max-width: 720px;
+	max-width: 680px;
 	margin: 22px 0 0;
 	color: #111;
-	font-size: 1.05rem;
+	font-size: clamp(1.05rem, 1.25vw, 1.35rem);
 	font-weight: 700;
 	line-height: 1.55;
 }
@@ -1041,9 +1045,10 @@ button {
 
 .eligibility-strip {
 	display: flex;
-	width: fit-content;
+	width: 100%;
 	max-width: 100%;
 	align-items: center;
+	flex-wrap: wrap;
 	gap: 10px;
 	margin-top: 12px;
 	border: 1px solid rgba(0, 51, 153, 0.3);
@@ -1056,6 +1061,15 @@ button {
 	display: inline-flex;
 	align-items: center;
 	gap: 7px;
+	min-width: 0;
+}
+
+.eligibility-strip > div:first-child {
+	flex: 1 1 420px;
+}
+
+.eligibility-strip > div:last-child {
+	flex: 0 0 auto;
 }
 
 .eligibility-strip span,
@@ -1072,8 +1086,9 @@ button {
 
 .eligibility-strip strong {
 	color: #111111;
-	font-size: clamp(0.78rem, 1.05vw, 0.95rem);
+	font-size: clamp(0.78rem, 0.92vw, 0.9rem);
 	line-height: 1.15;
+	overflow-wrap: anywhere;
 }
 
 .eligibility-strip > div:last-child {
@@ -1108,7 +1123,7 @@ button {
 	z-index: 1;
 	display: grid;
 	align-items: start;
-	gap: 12px;
+	gap: clamp(12px, 1.2vw, 18px);
 	grid-column: 1 / -1;
 	margin: 0;
 	padding: 0;
@@ -1135,15 +1150,15 @@ button {
 
 .step-chip {
 	display: flex;
-	min-height: 68px;
+	min-height: clamp(68px, 4.5vw, 78px);
 	align-items: center;
 	gap: 9px;
 	border-color: #ffffff #606060 #606060 #ffffff;
 	border-style: solid;
 	border-width: 2px;
 	background: rgba(212, 208, 200, 0.92);
-	padding: 8px;
-	font-size: clamp(1rem, 1.7vw, 1.45rem);
+	padding: clamp(8px, 0.8vw, 12px);
+	font-size: clamp(1rem, 1.4vw, 1.45rem);
 	font-weight: 900;
 	box-shadow: inset 1px 1px 0 #efefef;
 }
@@ -1151,20 +1166,20 @@ button {
 .panel-content {
 	position: relative;
 	display: grid;
-	min-height: 150px;
+	min-height: clamp(150px, 14vh, 210px);
 	align-content: start;
-	gap: 10px;
+	gap: clamp(10px, 0.8vw, 14px);
 	border-color: #606060 #ffffff #ffffff #606060;
 	border-style: solid;
 	border-width: 2px;
 	background: #eef4ff;
-	padding: 14px;
+	padding: clamp(14px, 1vw, 18px);
 	box-shadow: inset 1px 1px 0 #808080;
 	overflow: hidden;
 }
 
 .panel-content strong {
-	font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+	font-size: clamp(1.05rem, 1.45vw, 1.42rem);
 	line-height: 1.15;
 }
 
@@ -2420,7 +2435,7 @@ button {
 
 @media (min-width: 640px) {
 	.retro-window {
-		min-height: calc(100vh - 3rem);
+		min-height: calc(100vh - clamp(1.5rem, 3vw, 3rem));
 	}
 
 	.hero-copy {
@@ -2432,15 +2447,15 @@ button {
 	}
 
 	.step-item:nth-child(1) {
-		--step-panel-height: 160px;
+		--step-panel-height: clamp(170px, 17vh, 260px);
 	}
 
 	.step-item:nth-child(2) {
-		--step-panel-height: 185px;
+		--step-panel-height: clamp(190px, 19vh, 285px);
 	}
 
 	.step-item:nth-child(3) {
-		--step-panel-height: 210px;
+		--step-panel-height: clamp(210px, 21vh, 315px);
 	}
 
 	.step-item .panel-content {

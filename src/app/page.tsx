@@ -1926,10 +1926,10 @@ export default function Home() {
 							</button>
 							<div className="punchcard-popup-body">
 								<span aria-hidden="true" className="punchcard-gold-dot" />
-								<h2 id="punchcard-title">Punchcard coming soon</h2>
+								<h2 id="punchcard-title">Punchcard is lurking</h2>
 								<p>
-									Earn punches from Barnav YSWS submissions toward bigger
-									rewards.
+									Some Widget ships may count toward something later. Keep
+									building.
 								</p>
 							</div>
 						</aside>
