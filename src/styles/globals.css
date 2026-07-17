@@ -952,6 +952,10 @@ button {
 	gap: 16px;
 }
 
+.landing-shop-preview {
+	display: none;
+}
+
 .hero-copy {
 	padding: 18px;
 	animation: hero-enter 0.72s steps(5, end) both;
@@ -1418,6 +1422,31 @@ button {
 	color: #003399;
 	font-weight: 950;
 	text-transform: uppercase;
+}
+
+.landing-shop-preview {
+	grid-column: 1 / -1;
+	gap: 10px;
+}
+
+.landing-shop-preview-head {
+	display: flex;
+	align-items: end;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.landing-shop-preview-head span {
+	color: #003399;
+	font-size: 0.74rem;
+	font-weight: 950;
+	text-transform: uppercase;
+}
+
+.landing-shop-preview-head strong {
+	color: #001a66;
+	font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+	line-height: 1.05;
 }
 
 .shop-faq {
@@ -2364,6 +2393,39 @@ button {
 	.step-item .panel-content {
 		height: var(--step-panel-height);
 		min-height: var(--step-panel-height);
+	}
+}
+
+@media (min-width: 1180px) and (min-height: 920px) {
+	.home-tab-page {
+		min-height: calc(100vh - 132px);
+	}
+
+	.landing-shop-preview {
+		display: grid;
+	}
+
+	.landing-shop-preview .shop-table {
+		min-width: 0;
+	}
+
+	.landing-shop-preview .shop-prize-card,
+	.landing-shop-preview .shop-prize-empty {
+		min-height: 126px;
+	}
+
+	.landing-shop-preview .shop-prize-card {
+		grid-template-rows: 64px 1fr;
+	}
+
+	.landing-shop-preview .shop-prize-card img,
+	.landing-shop-preview .shop-prize-mark {
+		height: 64px;
+	}
+
+	.landing-shop-preview .shop-prize-card p,
+	.landing-shop-preview .shop-prize-empty p {
+		font-size: 0.7rem;
 	}
 }
 

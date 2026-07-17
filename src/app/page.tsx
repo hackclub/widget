@@ -242,6 +242,57 @@ const prizeTiers: PrizeTier[] = [
 	},
 ];
 
+function ShopRewardsTable() {
+	return (
+		<table className="shop-table">
+			<thead>
+				<tr>
+					{prizeTiers.map((tier) => (
+						<th key={tier.hours} scope="col">
+							<span>{tier.hours}</span>
+							<strong>hour{tier.hours === 1 ? "" : "s"}</strong>
+						</th>
+					))}
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					{prizeTiers.map((tier) => (
+						<td key={tier.hours}>
+							{tier.rewards.length ? (
+								<div className="shop-prize-stack">
+									{tier.rewards.map((reward) => (
+										<article className="shop-prize-card" key={reward.title}>
+											{reward.imageSrc ? (
+												// biome-ignore lint/performance/noImgElement: small static prize images keep the app simple.
+												<img
+													alt={reward.imageAlt ?? reward.title}
+													src={reward.imageSrc}
+												/>
+											) : (
+												<div className="shop-prize-mark">W</div>
+											)}
+											<div>
+												<strong>{reward.title}</strong>
+												<p>{reward.detail}</p>
+											</div>
+										</article>
+									))}
+								</div>
+							) : (
+								<div className="shop-prize-empty">
+									<strong>coming soon</strong>
+									<p>More rewards will be added here.</p>
+								</div>
+							)}
+						</td>
+					))}
+				</tr>
+			</tbody>
+		</table>
+	);
+}
+
 const addressBarMessages = [
 	"Why would you do anything but Widget?",
 	"Nice try. Widget is the whole internet now.",
@@ -1240,55 +1291,7 @@ export default function Home() {
 										aria-label="Shop prizes by hours"
 										className="shop-table-wrap"
 									>
-										<table className="shop-table">
-											<thead>
-												<tr>
-													{prizeTiers.map((tier) => (
-														<th key={tier.hours} scope="col">
-															<span>{tier.hours}</span>
-															<strong>hour{tier.hours === 1 ? "" : "s"}</strong>
-														</th>
-													))}
-												</tr>
-											</thead>
-											<tbody>
-												<tr>
-													{prizeTiers.map((tier) => (
-														<td key={tier.hours}>
-															{tier.rewards.length ? (
-																<div className="shop-prize-stack">
-																	{tier.rewards.map((reward) => (
-																		<article
-																			className="shop-prize-card"
-																			key={reward.title}
-																		>
-																			{reward.imageSrc ? (
-																				// biome-ignore lint/performance/noImgElement: small static prize images keep the app simple.
-																				<img
-																					alt={reward.imageAlt ?? reward.title}
-																					src={reward.imageSrc}
-																				/>
-																			) : (
-																				<div className="shop-prize-mark">W</div>
-																			)}
-																			<div>
-																				<strong>{reward.title}</strong>
-																				<p>{reward.detail}</p>
-																			</div>
-																		</article>
-																	))}
-																</div>
-															) : (
-																<div className="shop-prize-empty">
-																	<strong>coming soon</strong>
-																	<p>More rewards will be added here.</p>
-																</div>
-															)}
-														</td>
-													))}
-												</tr>
-											</tbody>
-										</table>
+										<ShopRewardsTable />
 									</section>
 									<section aria-label="Shop FAQ" className="shop-faq">
 										<div className="shop-faq-head">
@@ -1762,7 +1765,7 @@ export default function Home() {
 									)}
 								</div>
 							) : (
-								<div className="main-canvas">
+								<div className="main-canvas home-tab-page">
 									<section className="hero-copy">
 										<div className="widget-lockup">
 											<h1 className="widget-word">Widget</h1>
@@ -1849,6 +1852,18 @@ export default function Home() {
 											</div>
 										</li>
 									</ul>
+									<section
+										aria-label="Shop preview"
+										className="landing-shop-preview"
+									>
+										<div className="landing-shop-preview-head">
+											<span>shop preview</span>
+											<strong>Rewards by build hours</strong>
+										</div>
+										<div className="shop-table-wrap">
+											<ShopRewardsTable />
+										</div>
+									</section>
 								</div>
 							)}
 						</div>
