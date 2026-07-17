@@ -369,6 +369,20 @@ export async function updateProject(
 	return rows[0] ? rowToProject(rows[0]) : null;
 }
 
+export async function deleteDraftProject(ownerId: string, projectId: string) {
+	await databaseReady();
+
+	const rows = await sql<{ id: string }[]>`
+		DELETE FROM widget_projects
+		WHERE id = ${projectId}
+			AND owner_id = ${ownerId}
+			AND status = 'draft'
+		RETURNING id
+	`;
+
+	return rows.length > 0;
+}
+
 export async function submitProjectForReview(
 	ownerId: string,
 	projectId: string,

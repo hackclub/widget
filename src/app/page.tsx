@@ -414,6 +414,24 @@ export default function Home() {
 			await utils.projects.listMine.invalidate();
 		},
 	});
+	const removeDraftProject = api.projects.removeDraft.useMutation({
+		onSuccess: async (_data, variables) => {
+			if (editingProjectId === variables.projectId) {
+				setProjectForm(emptyProjectForm);
+				setEditingProjectId(null);
+				setPreservedScreenshotProjectId(null);
+				setActiveProjectMode("create");
+			}
+
+			if (submittingProjectId === variables.projectId) {
+				setSubmittingProjectId(null);
+				setSubmissionForm(emptySubmissionForm);
+				setActiveProjectMode("create");
+			}
+
+			await utils.projects.listMine.invalidate();
+		},
+	});
 	const submitProjectForReview = api.projects.submitForReview.useMutation({
 		onSuccess: async () => {
 			setActiveProjectMode("create");
@@ -955,6 +973,14 @@ export default function Home() {
 		setProjectForm(emptyProjectForm);
 		setSubmissionForm(emptySubmissionForm);
 		setScreenshotUploadError(null);
+	}
+
+	function removeProject(projectId: string, projectName: string) {
+		if (!window.confirm(`Remove "${projectName}" from your builds?`)) {
+			return;
+		}
+
+		removeDraftProject.mutate({ projectId });
 	}
 
 	function projectStatusLabel(status: string) {
@@ -1629,6 +1655,11 @@ export default function Home() {
 														{submitProjectForReview.error.message}
 													</p>
 												) : null}
+												{removeDraftProject.error ? (
+													<p className="form-error">
+														{removeDraftProject.error.message}
+													</p>
+												) : null}
 											</form>
 
 											<section className="project-list">
@@ -1682,6 +1713,21 @@ export default function Home() {
 																		>
 																			edit
 																		</button>
+																		{project.status === "draft" ? (
+																			<button
+																				className="project-remove-button"
+																				disabled={removeDraftProject.isPending}
+																				onClick={() =>
+																					removeProject(
+																						project.id,
+																						project.name,
+																					)
+																				}
+																				type="button"
+																			>
+																				remove
+																			</button>
+																		) : null}
 																	</div>
 																</div>
 																{project.status !== "draft" ? (

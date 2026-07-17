@@ -5,6 +5,7 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import { getSubmissionIdentity } from "~/server/auth";
 import {
 	createProject,
+	deleteDraftProject,
 	getDraftProjectForOwner,
 	listProjectsForOwner,
 	type Project,
@@ -129,6 +130,24 @@ export const projectsRouter = createTRPCRouter({
 	listMine: protectedProcedure.query(({ ctx }) => {
 		return listProjectsForOwner(ctx.session.user.id);
 	}),
+
+	removeDraft: protectedProcedure
+		.input(z.object({ projectId: z.string().uuid() }))
+		.mutation(async ({ ctx, input }) => {
+			const didDelete = await deleteDraftProject(
+				ctx.session.user.id,
+				input.projectId,
+			);
+
+			if (!didDelete) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Draft project not found.",
+				});
+			}
+
+			return { projectId: input.projectId };
+		}),
 
 	submitForReview: protectedProcedure
 		.input(finalSubmissionInput)
