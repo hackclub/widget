@@ -12,7 +12,7 @@ import {
 
 const authBaseUrl = "https://auth.hackclub.com";
 export const sessionCookieName = "widget_session";
-const stateCookieName = "widget_oauth_state";
+export const stateCookieName = "widget_oauth_state";
 const sessionMaxAge = 60 * 60 * 24 * 30;
 const stateMaxAge = 60 * 10;
 const defaultHackClubScopes =
@@ -108,6 +108,17 @@ export function getRedirectUri(origin: string) {
 	return `https://${redirectUri}`;
 }
 
+export function createAuthUrl(origin: string, state: string) {
+	const authorizeUrl = new URL("/oauth/authorize", authBaseUrl);
+	authorizeUrl.searchParams.set("client_id", getHackClubClientId());
+	authorizeUrl.searchParams.set("redirect_uri", getRedirectUri(origin));
+	authorizeUrl.searchParams.set("response_type", "code");
+	authorizeUrl.searchParams.set("scope", getHackClubScopes());
+	authorizeUrl.searchParams.set("state", state);
+
+	return authorizeUrl;
+}
+
 export async function createAuthRedirect(origin: string) {
 	const state = crypto.randomUUID();
 	const cookieStore = await cookies();
@@ -119,14 +130,7 @@ export async function createAuthRedirect(origin: string) {
 		secure: secureCookies(),
 	});
 
-	const authorizeUrl = new URL("/oauth/authorize", authBaseUrl);
-	authorizeUrl.searchParams.set("client_id", getHackClubClientId());
-	authorizeUrl.searchParams.set("redirect_uri", getRedirectUri(origin));
-	authorizeUrl.searchParams.set("response_type", "code");
-	authorizeUrl.searchParams.set("scope", getHackClubScopes());
-	authorizeUrl.searchParams.set("state", state);
-
-	return authorizeUrl;
+	return createAuthUrl(origin, state);
 }
 
 export async function consumeOAuthCallback(input: {
@@ -194,6 +198,99 @@ export async function consumeOAuthCallback(input: {
 		sameSite: "lax",
 		secure: secureCookies(),
 	});
+}
+
+export async function createOAuthSession(input: {
+	code: string;
+	origin: string;
+	state: string | null;
+}) {
+	const cookieStore = await cookies();
+	const expectedState = cookieStore.get(stateCookieName)?.value;
+
+	if (!expectedState || expectedState !== input.state) {
+		throw new Error("Invalid OAuth state.");
+	}
+
+	const tokenResponse = await fetch(`${authBaseUrl}/oauth/token`, {
+		body: JSON.stringify({
+			client_id: getHackClubClientId(),
+			client_secret: getHackClubClientSecret(),
+			code: input.code,
+			grant_type: "authorization_code",
+			redirect_uri: getRedirectUri(input.origin),
+		}),
+		headers: {
+			"content-type": "application/json",
+		},
+		method: "POST",
+	});
+
+	if (!tokenResponse.ok) {
+		throw new Error("Hack Club token exchange failed.");
+	}
+
+	const token = tokenResponseSchema.parse(await tokenResponse.json());
+	const profileResponse = await fetch(`${authBaseUrl}/api/v1/me`, {
+		headers: {
+			authorization: `Bearer ${token.access_token}`,
+		},
+	});
+
+	if (!profileResponse.ok) {
+		throw new Error("Hack Club profile lookup failed.");
+	}
+
+	const profileRoot = profileSchema.parse(await profileResponse.json());
+	const user = buildAuthUser(profileRoot, crypto.randomUUID());
+	const sessionId = crypto.randomUUID();
+	const now = Date.now();
+	const expiresAt = new Date(now + token.expires_in * 1000).toISOString();
+
+	const session: Session = {
+		accessToken: token.access_token,
+		createdAt: new Date(now).toISOString(),
+		expiresAt,
+		refreshToken: token.refresh_token ?? null,
+		user,
+	};
+
+	await saveSession(sessionId, session);
+
+	return {
+		maxAge: Math.min(sessionMaxAge, token.expires_in),
+		sessionId,
+	};
+}
+
+export function sessionCookieOptions(maxAge: number) {
+	return {
+		httpOnly: true,
+		maxAge,
+		path: "/",
+		sameSite: "lax" as const,
+		secure: secureCookies(),
+	};
+}
+
+export function oauthStateCookieOptions() {
+	return {
+		httpOnly: true,
+		maxAge: stateMaxAge,
+		path: "/",
+		sameSite: "lax" as const,
+		secure: secureCookies(),
+	};
+}
+
+export function stateCookieOptions() {
+	return {
+		httpOnly: true,
+		maxAge: 0,
+		path: "/",
+		sameSite: "lax" as const,
+		secure: secureCookies(),
+	};
 }
 
 export async function getSessionFromHeaders(headers: Headers) {
