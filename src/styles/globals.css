@@ -1441,6 +1441,12 @@ button {
 	padding: 8px;
 }
 
+.shop-prize-media {
+	position: relative;
+	display: grid;
+	min-width: 0;
+}
+
 .shop-prize-card img,
 .shop-prize-mark {
 	width: 100%;
@@ -1450,12 +1456,69 @@ button {
 	object-fit: contain;
 }
 
+.shop-prize-arrow {
+	position: absolute;
+	top: 50%;
+	z-index: 1;
+	display: grid;
+	width: 26px;
+	height: 30px;
+	place-items: center;
+	border-color: #ffffff #606060 #606060 #ffffff;
+	border-style: solid;
+	border-width: 2px;
+	background: #ffdf34;
+	color: #003399;
+	font-size: 1rem;
+	font-weight: 950;
+	line-height: 1;
+	box-shadow:
+		inset 1px 1px 0 #fff7a8,
+		2px 2px 0 rgba(0, 0, 0, 0.2);
+	transform: translateY(-50%);
+}
+
+.shop-prize-arrow:first-child {
+	left: 5px;
+}
+
+.shop-prize-arrow:last-child {
+	right: 5px;
+}
+
+.shop-prize-arrow:hover,
+.shop-prize-arrow:focus-visible {
+	background: #003399;
+	color: #ffffff;
+	outline: 0;
+}
+
+.shop-prize-arrow:active {
+	border-color: #606060 #ffffff #ffffff #606060;
+	box-shadow: inset 1px 1px 0 #808080;
+	transform: translateY(calc(-50% + 1px)) translateX(1px);
+}
+
 .shop-prize-mark {
 	display: grid;
 	place-items: center;
 	color: #001a66;
 	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
 	font-size: 3rem;
+}
+
+.shop-prize-option-count {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 2;
+	display: inline-flex;
+	background: #003399;
+	padding: 2px 5px;
+	color: #ffffff;
+	font-size: 0.58rem;
+	font-weight: 950;
+	line-height: 1;
 }
 
 .shop-prize-card strong,

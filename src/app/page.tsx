@@ -20,11 +20,15 @@ type WindowDragStart = {
 };
 
 type BrowserTab = "widget" | "guides" | "shop" | "platform";
-type PrizeReward = {
+type PrizeOption = {
 	detail: string;
 	imageAlt?: string;
 	imageSrc?: string;
+	mark?: string;
 	title: string;
+};
+type PrizeReward = PrizeOption & {
+	options?: PrizeOption[];
 };
 type PrizeTier = {
 	hours: number;
@@ -169,7 +173,8 @@ const prizeTiers: PrizeTier[] = [
 		rewards: [
 			{
 				title: "Chrome Extension Store License",
-				detail: "Covers the cost on publishing on the Chrome Web Store! For free!",
+				detail:
+					"Covers the cost on publishing on the Chrome Web Store! For free!",
 				imageAlt: "Chrome Web Store bag icon",
 				imageSrc: "/chrome-webstore-license.png",
 			},
@@ -203,10 +208,6 @@ const prizeTiers: PrizeTier[] = [
 				imageSrc: "/four-key-macropad.jpeg",
 			},
 			{
-				title: "Browser Sticker Sheet",
-				detail: "Chrome, firefox, and web-builder stickers for your laptop!",
-			},
-			{
 				title: "Medium Rubber Duck",
 				detail: "A medium sized rubber ducky!",
 				imageAlt: "Medium rubber duck with size measurements",
@@ -222,12 +223,41 @@ const prizeTiers: PrizeTier[] = [
 				detail: "One of the best mice for building, gaming, and productivity.",
 				imageAlt: "Logitech G502 Hero mouse",
 				imageSrc: "/logitech-g502-hero.jpeg",
+				options: [
+					{
+						title: "Redragon M612 Predator RGB Gaming Mouse",
+						detail:
+							"The standard for the RGB-Gaming-Mouse fanatic. Works wonders everywhere!",
+						imageAlt: "Redragon M612 Predator RGB Gaming Mouse",
+						imageSrc: "/redragon-m612-predator.jpeg",
+					},
+					{
+						title: "$30 Mouse Grant",
+						detail: "Pick any mouse that fits your setup!",
+						mark: "$30",
+					},
+				],
 			},
 			{
 				title: "Aula S99 Keyboard",
-				detail: "A full-size, premium-quality, green-and-cream keyboard for your setup.",
+				detail:
+					"A full-size, premium-quality, green-and-cream keyboard for your setup.",
 				imageAlt: "Aula S99 green and cream keyboard",
 				imageSrc: "/aula-s99-keyboard.jpeg",
+				options: [
+					{
+						title: "ONIKUMA Tri-Mode RGB Silent Membrane Keyboard",
+						detail:
+							"A quiet RGB keyboard with bluetooth, wired, and wireless connection support. Best of all worlds!",
+						imageAlt: "ONIKUMA Tri-Mode RGB Silent Membrane Keyboard",
+						imageSrc: "/onikuma-tri-mode-keyboard.png",
+					},
+					{
+						title: "$30 Keyboard Grant",
+						detail: "Choose a keyboard that matches what you want!",
+						mark: "$30",
+					},
+				],
 			},
 			{
 				title: "TS PMO Shirt",
@@ -262,11 +292,62 @@ const prizeTiers: PrizeTier[] = [
 	},
 	{
 		hours: 50,
-		rewards: [],
+		rewards: [
+			{
+				title: 'HP Latest Stream 14" HD Laptop',
+				detail: "Latest Stream HP laptop for working on the go! FOR FREE!",
+				imageAlt: 'White HP Latest Stream 14" HD Laptop',
+				imageSrc: "/hp-stream-14-laptop.png",
+			},
+		],
 	},
 ];
 
 function ShopRewardsTable() {
+	const [carouselIndexes, setCarouselIndexes] = useState<
+		Record<string, number>
+	>({});
+
+	const shiftPrizeOption = (
+		key: string,
+		totalOptions: number,
+		change: number,
+	) => {
+		setCarouselIndexes((currentIndexes) => {
+			const currentIndex = currentIndexes[key] ?? 0;
+			return {
+				...currentIndexes,
+				[key]: (currentIndex + change + totalOptions) % totalOptions,
+			};
+		});
+	};
+
+	useEffect(() => {
+		const intervalId = window.setInterval(() => {
+			setCarouselIndexes((currentIndexes) => {
+				const nextIndexes = { ...currentIndexes };
+
+				for (const tier of prizeTiers) {
+					for (const reward of tier.rewards) {
+						const totalOptions = 1 + (reward.options?.length ?? 0);
+
+						if (totalOptions <= 1) {
+							continue;
+						}
+
+						const carouselKey = `${tier.hours}-${reward.title}`;
+						const currentIndex = currentIndexes[carouselKey] ?? 0;
+						nextIndexes[carouselKey] = (currentIndex + 1) % totalOptions;
+					}
+				}
+
+				return nextIndexes;
+			});
+		}, 7000);
+
+		return () => window.clearInterval(intervalId);
+	}, []);
+
 	return (
 		<table className="shop-table">
 			<thead>
@@ -285,23 +366,70 @@ function ShopRewardsTable() {
 						<td key={tier.hours}>
 							{tier.rewards.length ? (
 								<div className="shop-prize-stack">
-									{tier.rewards.map((reward) => (
-										<article className="shop-prize-card" key={reward.title}>
-											{reward.imageSrc ? (
-												// biome-ignore lint/performance/noImgElement: small static prize images keep the app simple.
-												<img
-													alt={reward.imageAlt ?? reward.title}
-													src={reward.imageSrc}
-												/>
-											) : (
-												<div className="shop-prize-mark">W</div>
-											)}
-											<div>
-												<strong>{reward.title}</strong>
-												<p>{reward.detail}</p>
-											</div>
-										</article>
-									))}
+									{tier.rewards.map((reward) => {
+										const options = [reward, ...(reward.options ?? [])];
+										const carouselKey = `${tier.hours}-${reward.title}`;
+										const selectedIndex =
+											(carouselIndexes[carouselKey] ?? 0) % options.length;
+										const selectedReward = options[selectedIndex] ?? reward;
+
+										return (
+											<article className="shop-prize-card" key={reward.title}>
+												<div className="shop-prize-media">
+													{options.length > 1 ? (
+														<button
+															aria-label={`Previous option for ${reward.title}`}
+															className="shop-prize-arrow"
+															onClick={() =>
+																shiftPrizeOption(
+																	carouselKey,
+																	options.length,
+																	-1,
+																)
+															}
+															type="button"
+														>
+															←
+														</button>
+													) : null}
+													{selectedReward.imageSrc ? (
+														// biome-ignore lint/performance/noImgElement: small static prize images keep the app simple.
+														<img
+															alt={
+																selectedReward.imageAlt ?? selectedReward.title
+															}
+															src={selectedReward.imageSrc}
+														/>
+													) : (
+														<div className="shop-prize-mark">
+															{selectedReward.mark ?? "W"}
+														</div>
+													)}
+													{options.length > 1 ? (
+														<button
+															aria-label={`Next option for ${reward.title}`}
+															className="shop-prize-arrow"
+															onClick={() =>
+																shiftPrizeOption(carouselKey, options.length, 1)
+															}
+															type="button"
+														>
+															→
+														</button>
+													) : null}
+													{options.length > 1 ? (
+														<span className="shop-prize-option-count">
+															{selectedIndex + 1}/{options.length}
+														</span>
+													) : null}
+												</div>
+												<div>
+													<strong>{selectedReward.title}</strong>
+													<p>{selectedReward.detail}</p>
+												</div>
+											</article>
+										);
+									})}
 								</div>
 							) : (
 								<div className="shop-prize-empty">
