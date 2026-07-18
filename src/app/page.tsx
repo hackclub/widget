@@ -289,8 +289,8 @@ const prizeTiers: PrizeTier[] = [
 				imageSrc: "/lenovo-300e-chromebook.jpeg",
 			},
 			{
-				title: "Giant Shark Plushy",
-				detail: "A huge soft shark plush for maximum desk presence.",
+				title: "Absolutely Gigantic Blåhaj",
+				detail: "An overtly gigantic blåhaj for maximum cutness.",
 				imageAlt: "Giant shark plushy held by a kid",
 				imageSrc: "/giant-shark-plushy.jpeg",
 			},
