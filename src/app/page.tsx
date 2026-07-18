@@ -169,15 +169,21 @@ const prizeTiers: PrizeTier[] = [
 		rewards: [
 			{
 				title: "Chrome Extension Store License",
-				detail: "Publish your extension on the Chrome Web Store.",
+				detail: "Covers the cost on publishing on the Chrome Web Store! For free!",
 				imageAlt: "Chrome Web Store bag icon",
 				imageSrc: "/chrome-webstore-license.png",
 			},
 			{
 				title: "One Key Keychain",
-				detail: "A tiny one-key macropad keychain for shortcut energy.",
-				imageAlt: "One key macropad keychain with a paw keycap",
+				detail: "A tiny one-key macropad keychain for shortcut energy!",
+				imageAlt: "one key macropad keychain. VERY satisfying fidget.",
 				imageSrc: "/one-key-macropad.png",
+			},
+			{
+				title: "Small Rubber Duck",
+				detail: "A rubber duck. Can't go wrong!",
+				imageAlt: "Small rubber duck held in a hand",
+				imageSrc: "/small-rubber-duck.jpeg",
 			},
 		],
 	},
@@ -192,13 +198,19 @@ const prizeTiers: PrizeTier[] = [
 			},
 			{
 				title: "Four Key Macropad",
-				detail: "A compact four-button macro pad for shortcuts and demos.",
-				imageAlt: "Four key macropad with black keycaps",
+				detail: "A satisfying four-button macro pad for shortcuts and demos.",
+				imageAlt: "a satisfying fidget four key macropad with black keycaps",
 				imageSrc: "/four-key-macropad.jpeg",
 			},
 			{
 				title: "Browser Sticker Sheet",
-				detail: "Chrome, Firefox, and web-builder stickers for your laptop.",
+				detail: "Chrome, firefox, and web-builder stickers for your laptop!",
+			},
+			{
+				title: "Medium Rubber Duck",
+				detail: "A medium sized rubber ducky!",
+				imageAlt: "Medium rubber duck with size measurements",
+				imageSrc: "/medium-rubber-duck.jpeg",
 			},
 		],
 	},
@@ -207,21 +219,27 @@ const prizeTiers: PrizeTier[] = [
 		rewards: [
 			{
 				title: "Logitech G502 Hero",
-				detail: "A classic wired mouse for building and gaming.",
+				detail: "One of the best mice for building, gaming, and productivity.",
 				imageAlt: "Logitech G502 Hero mouse",
 				imageSrc: "/logitech-g502-hero.jpeg",
 			},
 			{
 				title: "Aula S99 Keyboard",
-				detail: "A full-size green-and-cream keyboard for your setup.",
+				detail: "A full-size, premium-quality, green-and-cream keyboard for your setup.",
 				imageAlt: "Aula S99 green and cream keyboard",
 				imageSrc: "/aula-s99-keyboard.jpeg",
 			},
 			{
 				title: "TS PMO Shirt",
-				detail: "A deeply serious shirt for deeply unserious web builders.",
+				detail: "For the real typescript enthusiasts.",
 				imageAlt: "White TS PMO shirt",
 				imageSrc: "/ts-pmo-shirt.jpeg",
+			},
+			{
+				title: "Gigantic Rubber Duck",
+				detail: "A. Gigantic. Rubber. Duck.",
+				imageAlt: "Gigantic rubber duck held beside a smiling kid",
+				imageSrc: "/gigantic-rubber-duck.jpeg",
 			},
 		],
 	},
@@ -1794,19 +1812,6 @@ export default function Home() {
 											</span>{" "}
 											by Barnav @ Hack Club
 										</div>
-										<div className="eligibility-strip">
-											<div>
-												<span>eligible builds</span>
-												<strong>
-													Chrome, Firefox, and any browser extension or widget
-													counts.
-												</strong>
-											</div>
-											<div>
-												<span>deadline</span>
-												<strong>July 31</strong>
-											</div>
-										</div>
 									</section>
 
 									<button
@@ -1871,6 +1876,19 @@ export default function Home() {
 											</div>
 										</li>
 									</ul>
+									<div className="eligibility-strip">
+										<div>
+											<span>eligible builds</span>
+											<strong>
+												Chrome, Firefox, and any browser extension or widget
+												counts.
+											</strong>
+										</div>
+										<div>
+											<span>deadline</span>
+											<strong>July 31</strong>
+										</div>
+									</div>
 									<section
 										aria-label="Shop preview"
 										className="landing-shop-preview"
