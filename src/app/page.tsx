@@ -2,6 +2,7 @@
 
 import {
 	type ChangeEvent,
+	type CSSProperties,
 	type FormEvent,
 	type PointerEvent,
 	useCallback,
@@ -602,6 +603,13 @@ const emptySubmissionForm: SubmissionFormState = {
 };
 
 const maxScreenshotUploadBytes = 1_000_000;
+const shipConfettiPieces = Array.from({ length: 36 }, (_, index) => ({
+	delay: `${(index % 12) * 0.045}s`,
+	duration: `${1.35 + (index % 5) * 0.12}s`,
+	id: `ship-confetti-${index}`,
+	left: `${4 + ((index * 17) % 92)}%`,
+	spin: index % 2 === 0 ? "1turn" : "-1turn",
+}));
 
 export default function Home() {
 	const utils = api.useUtils();
@@ -655,6 +663,7 @@ export default function Home() {
 	});
 	const submitProjectForReview = api.projects.submitForReview.useMutation({
 		onSuccess: async () => {
+			triggerShipConfetti();
 			setActiveProjectMode("create");
 			setProjectForm(emptyProjectForm);
 			setPreservedScreenshotProjectId(null);
@@ -696,11 +705,13 @@ export default function Home() {
 	const windowRef = useRef<HTMLDivElement>(null);
 	const windowPositionRef = useRef({ x: 0, y: 0 });
 	const addressTakeoverTimeout = useRef<number | null>(null);
+	const shipConfettiTimeout = useRef<number | null>(null);
 	const nyanAudioRef = useRef<HTMLAudioElement | null>(null);
 	const idea = ideas[ideaIndex] ?? ideas[0];
 	const dragStartRef = useRef<WindowDragStart | null>(null);
 	const [showAlreadyHere, setShowAlreadyHere] = useState(false);
 	const [alreadyHereFading, setAlreadyHereFading] = useState(false);
+	const [isShipConfettiVisible, setIsShipConfettiVisible] = useState(false);
 	const submittingProject = projectsQuery.data?.find((project) => {
 		return project.id === submittingProjectId;
 	});
@@ -817,6 +828,10 @@ export default function Home() {
 
 			if (alreadyHereTimeout.current) {
 				window.clearTimeout(alreadyHereTimeout.current);
+			}
+
+			if (shipConfettiTimeout.current) {
+				window.clearTimeout(shipConfettiTimeout.current);
 			}
 		};
 	}, []);
@@ -1216,6 +1231,21 @@ export default function Home() {
 		return status.replace("_", " ");
 	}
 
+	function triggerShipConfetti() {
+		if (shipConfettiTimeout.current) {
+			window.clearTimeout(shipConfettiTimeout.current);
+		}
+
+		setIsShipConfettiVisible(false);
+		window.requestAnimationFrame(() => {
+			setIsShipConfettiVisible(true);
+		});
+		shipConfettiTimeout.current = window.setTimeout(() => {
+			setIsShipConfettiVisible(false);
+			shipConfettiTimeout.current = null;
+		}, 2200);
+	}
+
 	function submitProjectForFinalReview(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 
@@ -1233,6 +1263,23 @@ export default function Home() {
 
 	return (
 		<main className="retro-desktop min-h-screen overflow-hidden p-3 text-[#050505] sm:p-6">
+			{isShipConfettiVisible ? (
+				<div aria-hidden="true" className="ship-confetti">
+					{shipConfettiPieces.map((piece) => (
+						<span
+							key={piece.id}
+							style={
+								{
+									"--confetti-delay": piece.delay,
+									"--confetti-duration": piece.duration,
+									"--confetti-left": piece.left,
+									"--confetti-spin": piece.spin,
+								} as CSSProperties
+							}
+						/>
+					))}
+				</div>
+			) : null}
 			<nav aria-label="Wonderous OS apps" className="desktop-icons">
 				<button onClick={() => setActiveTab("widget")} type="button">
 					<span>W</span>
@@ -1948,8 +1995,8 @@ export default function Home() {
 											</div>
 										</div>
 										<p>
-											Make a browser extension, ship it, and get free browser
-											merch shipped back!
+											Make a browser extension, ship it, and get free keyboards,
+											mice, and merch sent back!
 										</p>
 										<div className="made-by">
 											Made with{" "}
@@ -2003,14 +2050,14 @@ export default function Home() {
 										<li className="step-item">
 											<div className="step-chip">
 												<span className="tiny-window" />
-												Get Merch, Prizes, & More!
+												Get Mice, Prizes, & More!
 											</div>
 											<div className="panel-content merch-panel">
 												<span>shop preview</span>
 												<strong>Browse the prize shop</strong>
 												<p>
-													Browser merch, sticker packs, web grants, and desk
-													gear — yours after you ship.
+													Keyboards, laptops, web grants, and desk gear — all
+													for free!
 												</p>
 												<button
 													className="shop-cta-button"

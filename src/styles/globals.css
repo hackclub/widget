@@ -2046,6 +2046,42 @@ button {
 	overflow-y: auto;
 }
 
+.ship-confetti {
+	position: fixed;
+	inset: 0;
+	z-index: 80;
+	pointer-events: none;
+	overflow: hidden;
+}
+
+.ship-confetti span {
+	--confetti-color: #ffdf34;
+	position: absolute;
+	top: -24px;
+	left: var(--confetti-left);
+	width: 10px;
+	height: 18px;
+	border: 1px solid rgba(0, 0, 0, 0.18);
+	background: var(--confetti-color);
+	box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.18);
+	animation: ship-confetti-fall var(--confetti-duration) steps(8, end)
+		var(--confetti-delay) both;
+}
+
+.ship-confetti span:nth-child(4n + 1) {
+	--confetti-color: #003399;
+}
+
+.ship-confetti span:nth-child(4n + 2) {
+	--confetti-color: #ff6b6b;
+	width: 14px;
+	height: 10px;
+}
+
+.ship-confetti span:nth-child(4n + 3) {
+	--confetti-color: #35c46f;
+}
+
 .platform-hero,
 .platform-locked,
 .project-form,
@@ -2679,6 +2715,31 @@ button {
 		animation-duration: 0.01ms;
 		animation-iteration-count: 1;
 		scroll-behavior: auto;
+	}
+
+	.ship-confetti span {
+		top: 18px;
+		opacity: 0.8;
+	}
+}
+
+@keyframes ship-confetti-fall {
+	0% {
+		opacity: 0;
+		transform: translateY(0) rotate(0deg);
+	}
+
+	12% {
+		opacity: 1;
+	}
+
+	88% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+		transform: translateY(112vh) rotate(var(--confetti-spin));
 	}
 }
 
