@@ -288,6 +288,12 @@ const prizeTiers: PrizeTier[] = [
 				imageAlt: "Lenovo 300e Chromebook touchscreen 2 in 1",
 				imageSrc: "/lenovo-300e-chromebook.jpeg",
 			},
+			{
+				title: "Giant Shark Plushy",
+				detail: "A huge soft shark plush for maximum desk presence.",
+				imageAlt: "Giant shark plushy held by a kid",
+				imageSrc: "/giant-shark-plushy.jpeg",
+			},
 		],
 	},
 	{
@@ -323,29 +329,32 @@ function ShopRewardsTable() {
 	};
 
 	useEffect(() => {
-		const intervalId = window.setInterval(() => {
-			setCarouselIndexes((currentIndexes) => {
-				const nextIndexes = { ...currentIndexes };
+		const carouselRewards = prizeTiers.flatMap((tier, tierIndex) =>
+			tier.rewards.map((reward, rewardIndex) => ({
+				key: `${tier.hours}-${reward.title}`,
+				rotationMs: 7600 + tierIndex * 900 + rewardIndex * 1300,
+				totalOptions: 1 + (reward.options?.length ?? 0),
+			})),
+		);
+		const intervalIds = carouselRewards
+			.filter((reward) => reward.totalOptions > 1)
+			.map((reward) =>
+				window.setInterval(() => {
+					setCarouselIndexes((currentIndexes) => {
+						const currentIndex = currentIndexes[reward.key] ?? 0;
+						return {
+							...currentIndexes,
+							[reward.key]: (currentIndex + 1) % reward.totalOptions,
+						};
+					});
+				}, reward.rotationMs),
+			);
 
-				for (const tier of prizeTiers) {
-					for (const reward of tier.rewards) {
-						const totalOptions = 1 + (reward.options?.length ?? 0);
-
-						if (totalOptions <= 1) {
-							continue;
-						}
-
-						const carouselKey = `${tier.hours}-${reward.title}`;
-						const currentIndex = currentIndexes[carouselKey] ?? 0;
-						nextIndexes[carouselKey] = (currentIndex + 1) % totalOptions;
-					}
-				}
-
-				return nextIndexes;
-			});
-		}, 7000);
-
-		return () => window.clearInterval(intervalId);
+		return () => {
+			for (const intervalId of intervalIds) {
+				window.clearInterval(intervalId);
+			}
+		};
 	}, []);
 
 	return (
@@ -379,7 +388,7 @@ function ShopRewardsTable() {
 													{options.length > 1 ? (
 														<button
 															aria-label={`Previous option for ${reward.title}`}
-															className="shop-prize-arrow"
+															className="shop-prize-arrow shop-prize-arrow-prev"
 															onClick={() =>
 																shiftPrizeOption(
 																	carouselKey,
@@ -392,23 +401,29 @@ function ShopRewardsTable() {
 															←
 														</button>
 													) : null}
-													{selectedReward.imageSrc ? (
-														// biome-ignore lint/performance/noImgElement: small static prize images keep the app simple.
-														<img
-															alt={
-																selectedReward.imageAlt ?? selectedReward.title
-															}
-															src={selectedReward.imageSrc}
-														/>
-													) : (
-														<div className="shop-prize-mark">
-															{selectedReward.mark ?? "W"}
-														</div>
-													)}
+													<div
+														className="shop-prize-visual"
+														key={selectedReward.title}
+													>
+														{selectedReward.imageSrc ? (
+															// biome-ignore lint/performance/noImgElement: small static prize images keep the app simple.
+															<img
+																alt={
+																	selectedReward.imageAlt ??
+																	selectedReward.title
+																}
+																src={selectedReward.imageSrc}
+															/>
+														) : (
+															<div className="shop-prize-mark">
+																{selectedReward.mark ?? "W"}
+															</div>
+														)}
+													</div>
 													{options.length > 1 ? (
 														<button
 															aria-label={`Next option for ${reward.title}`}
-															className="shop-prize-arrow"
+															className="shop-prize-arrow shop-prize-arrow-next"
 															onClick={() =>
 																shiftPrizeOption(carouselKey, options.length, 1)
 															}
@@ -423,7 +438,10 @@ function ShopRewardsTable() {
 														</span>
 													) : null}
 												</div>
-												<div>
+												<div
+													className="shop-prize-copy"
+													key={`${selectedReward.title}-copy`}
+												>
 													<strong>{selectedReward.title}</strong>
 													<p>{selectedReward.detail}</p>
 												</div>

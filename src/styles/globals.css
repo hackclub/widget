@@ -1447,10 +1447,25 @@ button {
 	min-width: 0;
 }
 
-.shop-prize-card img,
+.shop-prize-visual {
+	display: grid;
+	min-width: 0;
+	animation: prize-option-enter 360ms steps(4, end) both;
+}
+
 .shop-prize-mark {
-	width: 100%;
+	display: grid;
+	place-items: center;
+	color: #001a66;
+	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
+	font-size: 3rem;
+}
+
+.shop-prize-visual img,
+.shop-prize-visual .shop-prize-mark {
+	width: calc(100% - 76px);
 	height: 92px;
+	margin: 0 auto;
 	border: 1px solid #9a9a9a;
 	background: #eef6ff;
 	object-fit: contain;
@@ -1478,11 +1493,11 @@ button {
 	transform: translateY(-50%);
 }
 
-.shop-prize-arrow:first-child {
+.shop-prize-arrow-prev {
 	left: 5px;
 }
 
-.shop-prize-arrow:last-child {
+.shop-prize-arrow-next {
 	right: 5px;
 }
 
@@ -1499,18 +1514,10 @@ button {
 	transform: translateY(calc(-50% + 1px)) translateX(1px);
 }
 
-.shop-prize-mark {
-	display: grid;
-	place-items: center;
-	color: #001a66;
-	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
-	font-size: 3rem;
-}
-
 .shop-prize-option-count {
 	position: absolute;
 	top: 6px;
-	right: 6px;
+	right: 44px;
 	z-index: 2;
 	display: inline-flex;
 	background: #003399;
@@ -1521,12 +1528,45 @@ button {
 	line-height: 1;
 }
 
+.shop-prize-copy {
+	animation: prize-copy-enter 300ms steps(4, end) both;
+}
+
 .shop-prize-card strong,
 .shop-prize-empty strong {
 	display: block;
 	color: #001a66;
 	font-size: 0.98rem;
 	line-height: 1.05;
+}
+
+@keyframes prize-option-enter {
+	0% {
+		opacity: 0.2;
+		transform: translateX(12px);
+	}
+
+	60% {
+		opacity: 1;
+		transform: translateX(-2px);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes prize-copy-enter {
+	0% {
+		opacity: 0.35;
+		transform: translateY(4px);
+	}
+
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 
 .shop-prize-card p,
