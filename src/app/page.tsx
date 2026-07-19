@@ -249,7 +249,7 @@ const prizeTiers: PrizeTier[] = [
 					{
 						title: "ONIKUMA Tri-Mode RGB Silent Membrane Keyboard",
 						detail:
-							"A quiet RGB keyboard with bluetooth, wired, and wireless connection support. Best of all worlds!",
+							"A quiet RGB keyboard with bluetooth, wired, and wireless connection support.",
 						imageAlt: "ONIKUMA Tri-Mode RGB Silent Membrane Keyboard",
 						imageSrc: "/onikuma-tri-mode-keyboard.png",
 					},
@@ -295,6 +295,12 @@ const prizeTiers: PrizeTier[] = [
 				imageAlt: "Giant shark plushy held by a kid",
 				imageSrc: "/giant-shark-plushy.jpeg",
 			},
+			{
+				title: "Amazon Echo Dot",
+				detail: "A compact smart speaker for music, timers, and desk commands.",
+				imageAlt: "Black Amazon Echo Dot smart speaker",
+				imageSrc: "/amazon-echo-dot.png",
+			},
 		],
 	},
 	{
@@ -305,6 +311,12 @@ const prizeTiers: PrizeTier[] = [
 				detail: "Latest Stream HP laptop for working on the go! FOR FREE!",
 				imageAlt: 'White HP Latest Stream 14" HD Laptop',
 				imageSrc: "/hp-stream-14-laptop.png",
+			},
+			{
+				title: "Nintendo Switch Lite",
+				detail: "A turquoise handheld console for relaxing after you ship.",
+				imageAlt: "Turquoise Nintendo Switch Lite handheld console",
+				imageSrc: "/nintendo-switch-lite.jpeg",
 			},
 		],
 	},
