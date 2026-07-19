@@ -295,12 +295,6 @@ const prizeTiers: PrizeTier[] = [
 				imageAlt: "Giant shark plushy held by a kid",
 				imageSrc: "/giant-shark-plushy.jpeg",
 			},
-			{
-				title: "Amazon Echo Dot",
-				detail: "A compact smart speaker for music, timers, and desk commands.",
-				imageAlt: "Black Amazon Echo Dot smart speaker",
-				imageSrc: "/amazon-echo-dot.png",
-			},
 		],
 	},
 	{
@@ -317,6 +311,12 @@ const prizeTiers: PrizeTier[] = [
 				detail: "A turquoise handheld console for relaxing after you ship.",
 				imageAlt: "Turquoise Nintendo Switch Lite handheld console",
 				imageSrc: "/nintendo-switch-lite.jpeg",
+			},
+			{
+				title: "Amazon Echo Dot",
+				detail: "A compact smart speaker for music, timers, and desk commands.",
+				imageAlt: "Black Amazon Echo Dot smart speaker",
+				imageSrc: "/amazon-echo-dot.png",
 			},
 		],
 	},
