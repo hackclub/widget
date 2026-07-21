@@ -295,6 +295,12 @@ const prizeTiers: PrizeTier[] = [
 				imageAlt: "Giant shark plushy held by a kid",
 				imageSrc: "/giant-shark-plushy.jpeg",
 			},
+			{
+				title: "Flipper Zero",
+				detail: "A pocket-sized hacking multitool for hardware experiments.",
+				imageAlt: "White and orange Flipper Zero device",
+				imageSrc: "/flipper-zero.png",
+			},
 		],
 	},
 	{
