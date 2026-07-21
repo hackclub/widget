@@ -240,11 +240,11 @@ const prizeTiers: PrizeTier[] = [
 				],
 			},
 			{
-				title: "Aula S99 Keyboard",
+				title: "AK96 Creamy Mechanical Keyboard",
 				detail:
-					"A full-size, premium-quality, green-and-cream keyboard for your setup.",
-				imageAlt: "Aula S99 green and cream keyboard",
-				imageSrc: "/aula-s99-keyboard.jpeg",
+					"A creamy full-size mechanical keyboard with RGB and a control knob.",
+				imageAlt: "AK96 Creamy Mechanical Keyboard",
+				imageSrc: "/ak96-creamy-mechanical-keyboard.jpeg",
 				options: [
 					{
 						title: "ONIKUMA Tri-Mode RGB Silent Membrane Keyboard",
