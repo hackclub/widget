@@ -1311,7 +1311,7 @@ export default function Home() {
 				</button>
 			</nav>
 
-			<div className="os-shell mx-auto max-w-7xl">
+			<div className="os-shell mx-auto">
 				<div className="retro-window" ref={windowRef}>
 					<header>
 						<div
