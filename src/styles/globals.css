@@ -2577,22 +2577,33 @@ button {
 
 @container (max-width: 1180px) {
 	.home-tab-page {
-		grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+		grid-template-columns: minmax(0, 1fr) minmax(300px, 400px);
 		min-height: auto;
 	}
 
 	.home-tab-page .hero-copy {
-		grid-column: 1 / -1;
+		grid-column: 1;
+		padding: clamp(24px, 3cqw, 44px);
 	}
 
 	.platform-entry-button {
+		grid-column: 2;
+		justify-self: stretch;
 		width: 100%;
-		min-height: 240px;
+		min-height: 100%;
 		margin-top: 0;
 	}
 
 	.platform-entry-button strong {
-		font-size: clamp(2.45rem, 6cqw, 4rem);
+		font-size: clamp(2.45rem, 4.4cqw, 3.7rem);
+	}
+
+	.widget-word {
+		font-size: clamp(4.9rem, 12cqw, 8rem);
+	}
+
+	.hero-copy p {
+		font-size: clamp(1.08rem, 2.1cqw, 1.45rem);
 	}
 
 	.step-strip {
@@ -2639,6 +2650,7 @@ button {
 	}
 
 	.platform-entry-button {
+		grid-column: 1;
 		justify-self: stretch;
 		min-height: 178px;
 		padding: 24px 18px 28px;
