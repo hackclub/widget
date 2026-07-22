@@ -214,6 +214,12 @@ const prizeTiers: PrizeTier[] = [
 				imageAlt: "Medium rubber duck with size measurements",
 				imageSrc: "/medium-rubber-duck.jpeg",
 			},
+			{
+				title: "Duckey Quack Keychain",
+				detail: "A ducky keychain with tiny keyboard energy.",
+				imageAlt: "Duckey Quack Keychain with yellow duck on a keychain base",
+				imageSrc: "/duckey-quack-keychain.jpeg",
+			},
 		],
 	},
 	{
@@ -278,10 +284,18 @@ const prizeTiers: PrizeTier[] = [
 		hours: 25,
 		rewards: [
 			{
-				title: "Google Streamer 4K",
-				detail: "A 4K Google TV streamer for testing and relaxing.",
-				imageAlt: "Google Streamer 4K with remote",
-				imageSrc: "/google-streamer-4k.jpeg",
+				title: "Innioasis Latest MP3 Player",
+				detail: "A pocket music player for focus playlists and desk demos.",
+				imageAlt: "Pink Innioasis Latest MP3 Player",
+				imageSrc: "/innioasis-mp3-player.jpeg",
+				options: [
+					{
+						title: "Google Streamer 4K",
+						detail: "A 4K Google TV streamer for testing and relaxing.",
+						imageAlt: "Google Streamer 4K with remote",
+						imageSrc: "/google-streamer-4k.jpeg",
+					},
+				],
 			},
 			{
 				title: 'Lenovo 11.6" 300e Chromebook',
@@ -457,6 +471,31 @@ function ShopRewardsTable() {
 														</span>
 													) : null}
 												</div>
+												{options.length > 1 ? (
+													<fieldset
+														aria-label={`Options for ${reward.title}`}
+														className="shop-prize-option-rail"
+													>
+														{options.map((option, optionIndex) => (
+															<button
+																aria-pressed={optionIndex === selectedIndex}
+																className={
+																	optionIndex === selectedIndex ? "active" : ""
+																}
+																key={option.title}
+																onClick={() =>
+																	setCarouselIndexes((currentIndexes) => ({
+																		...currentIndexes,
+																		[carouselKey]: optionIndex,
+																	}))
+																}
+																type="button"
+															>
+																{option.title}
+															</button>
+														))}
+													</fieldset>
+												) : null}
 												<div
 													className="shop-prize-copy"
 													key={`${selectedReward.title}-copy`}
@@ -1515,11 +1554,10 @@ export default function Home() {
 							) : activeTab === "shop" ? (
 								<div className="main-canvas shop-tab-page">
 									<section className="shop-intro">
-										<span>shop</span>
-										<strong>Pick your build-hours reward</strong>
+										<strong>The Widget Shop</strong>
 										<p>
-											Ship Widget, log your Hackatime hours, then choose from
-											clean browser-builder rewards.
+											Ship extensions and get a reward from the time you put in
+											working on it - for <i>free!</i>
 										</p>
 									</section>
 									<section
@@ -1537,24 +1575,27 @@ export default function Home() {
 											<article>
 												<strong>Is this actually free?</strong>
 												<p>
-													Yes. Build and submit a real browser extension, get it
-													reviewed, and your approved hours unlock prizes at no
-													cost to you.
+													Yes. Submit a browser extension, get it reviewed, and
+													your approved hours unlock prizes from this shop- for
+													free!
 												</p>
 											</article>
 											<article>
 												<strong>How do hours work?</strong>
 												<p>
-													Hours come from the Hackatime project you submit with
-													your extension. Pick the tier at or below your
-													approved hours.
+													Hours are tracked using{" "}
+													<a href="https://hackatime.hackclub.com">Hackatime</a>{" "}
+													auto-magically! When you submit your project, just
+													toss the link in, and pick any reward from at or below
+													the time you put in!
 												</p>
 											</article>
 											<article>
 												<strong>When do I choose?</strong>
 												<p>
-													After your project is reviewed, you will be able to
-													choose from the rewards available for your hour tier.
+													After your project is reviewed, one of our fulfillers
+													will message you directly to ask what you'd like to
+													pick!
 												</p>
 											</article>
 											<article>
@@ -1564,8 +1605,9 @@ export default function Home() {
 													<a href="https://hackclub.slack.com/archives/C08MUA0LGEV">
 														#widget
 													</a>{" "}
-													or let the fulfiller know before it ships. Once it is
-													shipped, prize choices are final.
+													or let the fulfiller know before it ships and you can
+													change it! After shipping, you likely won't be able to
+													change it.
 												</p>
 											</article>
 										</div>
