@@ -21,6 +21,7 @@ type WindowDragStart = {
 };
 
 type BrowserTab = "widget" | "guides" | "shop" | "platform";
+type GuideId = "rust" | "color-picker";
 type PrizeOption = {
 	detail: string;
 	imageAlt?: string;
@@ -611,6 +612,217 @@ while (textNode) {
 	},
 ];
 
+const colorPickerGuide = [
+	{
+		title: "1. Make the folder",
+		steps: [
+			"Create a new folder named page-color-picker.",
+			"Inside it, create three files: manifest.json, content.js, and popup.html.",
+			"Keep all three files in the top level of the folder so Chrome can find them.",
+		],
+	},
+	{
+		title: "2. Add manifest.json",
+		steps: [
+			"manifest.json tells Chrome the extension name, version, permissions, popup, and which script should run on web pages.",
+			"Use Manifest V3. The activeTab permission lets the popup ask the current page for a color after the user clicks it.",
+			"Keep the content script on http and https pages so it can listen for messages from the popup.",
+		],
+		code: `{
+  "manifest_version": 3,
+  "name": "Page Color Picker",
+  "version": "1.0.0",
+  "description": "Pick a color from the current page and copy the hex value.",
+  "permissions": ["activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"]
+    }
+  ]
+}`,
+	},
+	{
+		title: "3. Add popup.html",
+		steps: [
+			"popup.html is the small window that opens when someone clicks your extension icon.",
+			"Add a preview square, a hex value, and one button that starts picking.",
+			"Put the popup JavaScript in the same file so the project stays easy to submit and review.",
+		],
+		code: `<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        width: 220px;
+        margin: 0;
+        padding: 14px;
+        font-family: Arial, sans-serif;
+      }
+
+      #preview {
+        width: 100%;
+        height: 72px;
+        border: 2px solid #111;
+        background: #ffdf34;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 10px;
+        padding: 9px;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <strong>Page Color Picker</strong>
+    <div id="preview"></div>
+    <p id="hex">#ffdf34</p>
+    <button id="pick">pick page color</button>
+
+    <script>
+      const preview = document.querySelector("#preview");
+      const hex = document.querySelector("#hex");
+      const button = document.querySelector("#pick");
+
+      button.addEventListener("click", async () => {
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          currentWindow: true
+        });
+
+        const response = await chrome.tabs.sendMessage(tab.id, {
+          type: "pick-color"
+        });
+
+        preview.style.background = response.color;
+        hex.textContent = response.color;
+        await navigator.clipboard.writeText(response.color);
+      });
+    </script>
+  </body>
+</html>`,
+	},
+	{
+		title: "4. Write content.js",
+		steps: [
+			"content.js runs inside each matching page.",
+			"Listen for the pick-color message from popup.html.",
+			"Use the EyeDropper API when the browser supports it. Fall back to the page background color if EyeDropper is not available.",
+		],
+		code: `function rgbToHex(color) {
+  const match = color.match(/\\d+/g);
+
+  if (!match) {
+    return "#ffdf34";
+  }
+
+  return (
+    "#" +
+    match
+      .slice(0, 3)
+      .map((value) => Number(value).toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type !== "pick-color") {
+    return;
+  }
+
+  async function pickColor() {
+    if ("EyeDropper" in window) {
+      const picker = new EyeDropper();
+      const result = await picker.open();
+      return result.sRGBHex;
+    }
+
+    return rgbToHex(getComputedStyle(document.body).backgroundColor);
+  }
+
+  pickColor()
+    .then((color) => sendResponse({ color }))
+    .catch(() => sendResponse({ color: "#ffdf34" }));
+
+  return true;
+});`,
+	},
+	{
+		title: "5. Load it in Chrome",
+		steps: [
+			"Open chrome://extensions.",
+			"Turn on Developer mode in the top right.",
+			"Click Load unpacked and choose the page-color-picker folder.",
+			"Pin the extension so it is easy to click while testing.",
+		],
+	},
+	{
+		title: "6. Test it on real pages",
+		steps: [
+			"Open any normal website.",
+			"Click the extension icon, then click pick page color.",
+			"Choose a color on the page if the eyedropper appears.",
+			"Confirm the preview square and hex text update.",
+			"Edit content.js or popup.html, then return to chrome://extensions and click the reload button on the extension before testing again.",
+		],
+	},
+	{
+		title: "7. Put your code on GitHub",
+		steps: [
+			"Make a new public repository named page-color-picker.",
+			"Upload manifest.json, content.js, and popup.html to the repository.",
+			"Commit the files with a short message like add page color picker.",
+			"Copy the repository URL. This is the codebase link you will submit for review.",
+		],
+	},
+	{
+		title: "8. Submit for review",
+		steps: [
+			"Take one screenshot showing the popup after it picked a color.",
+			"Submit your GitHub repository URL as the codebase link.",
+			"Submit your GitHub repository URL as the playable link too.",
+			"Describe what your popup does and how the content script talks to the page.",
+		],
+	},
+];
+
+type GuideChoice = {
+	description: string;
+	id: GuideId;
+	label: string;
+	level: string;
+	sections: typeof rustImprovementGuide;
+	title: string;
+};
+
+const defaultGuide: GuideChoice = {
+	description:
+		"Start here. Build a content script that changes text on a page.",
+	id: "rust",
+	label: "Rust Improvement Engine",
+	level: "beginner",
+	sections: rustImprovementGuide,
+	title: "Full written guide",
+};
+
+const guideChoices: GuideChoice[] = [
+	defaultGuide,
+	{
+		description:
+			"Next step. Add a popup, content script messages, and browser APIs.",
+		id: "color-picker",
+		label: "Page Color Picker",
+		level: "advanced",
+		sections: colorPickerGuide,
+		title: "Color picker extension guide",
+	},
+];
+
 function renderGuideStep(step: string) {
 	if (!step.includes("/rust-test")) {
 		return step;
@@ -748,6 +960,7 @@ export default function Home() {
 		useState<SubmissionFormState>(emptySubmissionForm);
 	const [isGuidesTabOpen, setIsGuidesTabOpen] = useState(false);
 	const [isGuidesTabClosing, setIsGuidesTabClosing] = useState(false);
+	const [selectedGuideId, setSelectedGuideId] = useState<GuideId>("rust");
 	const [isShopTabOpen, setIsShopTabOpen] = useState(false);
 	const [isShopTabClosing, setIsShopTabClosing] = useState(false);
 	const [isPlatformTabOpen, setIsPlatformTabOpen] = useState(false);
@@ -796,6 +1009,8 @@ export default function Home() {
 		(isGuidesTabClosing && !isShopTabOpen && !isPlatformTabOpen) ||
 		(isShopTabClosing && !isGuidesTabOpen && !isPlatformTabOpen) ||
 		(isPlatformTabClosing && !isGuidesTabOpen && !isShopTabOpen);
+	const selectedGuide =
+		guideChoices.find((guide) => guide.id === selectedGuideId) ?? defaultGuide;
 
 	const refreshDirectSession = useCallback(async () => {
 		try {
@@ -1525,15 +1740,31 @@ export default function Home() {
 									<section className="guides-intro">
 										<strong>Build Your First Extension!</strong>
 										<p>
-											This is the Rust Improvement Engine - a basic extension
-											that changes every instance of the word "Rust" into
-											"Blazing Fast".
+											Pick a guide, build the extension, put your code on
+											GitHub, then submit it for review.
 										</p>
 									</section>
+									<section className="guide-picker">
+										{guideChoices.map((guide) => (
+											<button
+												aria-pressed={selectedGuideId === guide.id}
+												className={
+													selectedGuideId === guide.id ? "is-active" : ""
+												}
+												key={guide.id}
+												onClick={() => setSelectedGuideId(guide.id)}
+												type="button"
+											>
+												<span>{guide.level}</span>
+												<strong>{guide.label}</strong>
+												<p>{guide.description}</p>
+											</button>
+										))}
+									</section>
 									<section className="starter-guides written-guide">
-										<h2>Full written guide</h2>
+										<h2>{selectedGuide.title}</h2>
 										<div>
-											{rustImprovementGuide.map((section) => (
+											{selectedGuide.sections.map((section) => (
 												<article key={section.title}>
 													<strong>{section.title}</strong>
 													<ol>
