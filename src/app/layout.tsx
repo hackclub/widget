@@ -2,6 +2,7 @@ import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
+import Script from "next/script";
 
 import { TRPCReactProvider } from "~/trpc/react";
 
@@ -22,6 +23,15 @@ export default function RootLayout({
 		<html className={GeistSans.variable} lang="en">
 			<body>
 				<TRPCReactProvider>{children}</TRPCReactProvider>
+				<Script
+					async
+					src="https://plausible.io/js/pa-ro_EID0PYnn-M8JQ3MWw2.js"
+					strategy="afterInteractive"
+				/>
+				<Script id="plausible-init" strategy="afterInteractive">
+					{`window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+plausible.init()`}
+				</Script>
 			</body>
 		</html>
 	);
