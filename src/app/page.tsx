@@ -279,24 +279,22 @@ const prizeTiers: PrizeTier[] = [
 				imageAlt: "Gigantic rubber duck held beside a smiling kid",
 				imageSrc: "/gigantic-rubber-duck.jpeg",
 			},
+			{
+				title: "RUIZU Latest 64GB MP3 Player",
+				detail: "A tiny 64GB music player for focus playlists and desk demos.",
+				imageAlt: "Pink RUIZU Latest 64GB MP3 Player with earbuds",
+				imageSrc: "/ruizu-64gb-mp3-player.jpeg",
+			},
 		],
 	},
 	{
 		hours: 25,
 		rewards: [
 			{
-				title: "Innioasis Latest MP3 Player",
-				detail: "A pocket music player for focus playlists and desk demos.",
-				imageAlt: "Pink Innioasis Latest MP3 Player",
-				imageSrc: "/innioasis-mp3-player.jpeg",
-				options: [
-					{
-						title: "Google Streamer 4K",
-						detail: "A 4K Google TV streamer for testing and relaxing.",
-						imageAlt: "Google Streamer 4K with remote",
-						imageSrc: "/google-streamer-4k.jpeg",
-					},
-				],
+				title: "Google Streamer 4K",
+				detail: "A 4K Google TV streamer for testing and relaxing.",
+				imageAlt: "Google Streamer 4K with remote",
+				imageSrc: "/google-streamer-4k.jpeg",
 			},
 			{
 				title: 'Lenovo 11.6" 300e Chromebook',
