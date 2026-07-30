@@ -532,8 +532,8 @@ const rustImprovementGuide = [
 		title: "1. Make the folder",
 		steps: [
 			"Create a new folder named rust-improvement-engine.",
-			"Inside it, create two files: manifest.json and content.js.",
-			"Keep both files in the top level of the folder so Chrome can find them.",
+			"Inside it, create three files: manifest.json, content.js, and README.md.",
+			"Keep all three files in the top level of the folder so Chrome can find them.",
 		],
 	},
 	{
@@ -572,7 +572,15 @@ while (textNode) {
 }`,
 	},
 	{
-		title: "4. Load it in Chrome",
+		title: "4. Write README.md",
+		steps: [
+			"Open README.md.",
+			"Write a short title and description for Rust Improvement Engine.",
+			"Add a few lines explaining how to load it in Chrome and how to test it on /rust-test.",
+		],
+	},
+	{
+		title: "5. Load it in Chrome",
 		steps: [
 			"Open chrome://extensions.",
 			"Turn on Developer mode in the top right.",
@@ -581,7 +589,7 @@ while (textNode) {
 		],
 	},
 	{
-		title: "5. Test it on real pages",
+		title: "6. Test it on real pages",
 		steps: [
 			"Open the Rust test page on this site: /rust-test.",
 			"Refresh the page after loading the extension.",
@@ -590,17 +598,17 @@ while (textNode) {
 		],
 	},
 	{
-		title: "6. Put your code on GitHub",
+		title: "7. Put your code on GitHub",
 		steps: [
 			"Make a free GitHub account if you do not already have one.",
 			"Create a new public repository named rust-improvement-engine.",
-			"Upload manifest.json and content.js to the repository.",
+			"Upload manifest.json, content.js, and README.md to the repository.",
 			"Commit the files with a short message like add rust improvement engine.",
 			"Copy the repository URL. This is the codebase link you will submit for review.",
 		],
 	},
 	{
-		title: "7. Submit for review",
+		title: "8. Submit for review",
 		steps: [
 			"Take one screenshot showing the Rust test page after the replacement works.",
 			"Submit your GitHub repository URL as the codebase link.",
@@ -615,8 +623,8 @@ const colorPickerGuide = [
 		title: "1. Make the folder",
 		steps: [
 			"Create a new folder named page-color-picker.",
-			"Inside it, create three files: manifest.json, content.js, and popup.html.",
-			"Keep all three files in the top level of the folder so Chrome can find them.",
+			"Inside it, create four files: manifest.json, content.js, popup.html, and README.md.",
+			"Keep all four files in the top level of the folder so Chrome can find them.",
 		],
 	},
 	{
@@ -706,7 +714,15 @@ const colorPickerGuide = [
 </html>`,
 	},
 	{
-		title: "4. Write content.js",
+		title: "4. Write README.md",
+		steps: [
+			"Open README.md.",
+			"Write a short title and description for Page Color Picker.",
+			"Add a few lines explaining how to load it in Chrome, click the popup, and test picking a page color.",
+		],
+	},
+	{
+		title: "5. Write content.js",
 		steps: [
 			"content.js runs inside each matching page.",
 			"Listen for the pick-color message from popup.html.",
@@ -751,7 +767,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 });`,
 	},
 	{
-		title: "5. Load it in Chrome",
+		title: "6. Load it in Chrome",
 		steps: [
 			"Open chrome://extensions.",
 			"Turn on Developer mode in the top right.",
@@ -760,7 +776,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 		],
 	},
 	{
-		title: "6. Test it on real pages",
+		title: "7. Test it on real pages",
 		steps: [
 			"Open any normal website.",
 			"Click the extension icon, then click pick page color.",
@@ -770,16 +786,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 		],
 	},
 	{
-		title: "7. Put your code on GitHub",
+		title: "8. Put your code on GitHub",
 		steps: [
 			"Make a new public repository named page-color-picker.",
-			"Upload manifest.json, content.js, and popup.html to the repository.",
+			"Upload manifest.json, content.js, popup.html, and README.md to the repository.",
 			"Commit the files with a short message like add page color picker.",
 			"Copy the repository URL. This is the codebase link you will submit for review.",
 		],
 	},
 	{
-		title: "8. Submit for review",
+		title: "9. Submit for review",
 		steps: [
 			"Take one screenshot showing the popup after it picked a color.",
 			"Submit your GitHub repository URL as the codebase link.",
@@ -2149,6 +2165,13 @@ export default function Home() {
 																			? "Save Changes"
 																			: "+ Add Project"}
 																</button>
+																{activeProjectMode === "create" ? (
+																	<small>
+																		If you're wondering about Hackatime
+																		projects, don't worry, you'll add that when
+																		submitting.
+																	</small>
+																) : null}
 															</div>
 														) : null}
 													</>
