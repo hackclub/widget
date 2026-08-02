@@ -51,6 +51,13 @@ type SubmissionFormState = {
 	hackatimeProjectUrl: string;
 };
 
+type CountdownParts = {
+	days: number;
+	hours: number;
+	minutes: number;
+	seconds: number;
+};
+
 type PlatformSession = {
 	expiresAt: string;
 	user: {
@@ -886,6 +893,7 @@ const emptySubmissionForm: SubmissionFormState = {
 };
 
 const maxScreenshotUploadBytes = 1_000_000;
+const submissionDeadline = new Date("2026-08-10T09:00:00-05:00");
 const shipConfettiPieces = Array.from({ length: 36 }, (_, index) => ({
 	delay: `${(index % 12) * 0.045}s`,
 	duration: `${1.35 + (index % 5) * 0.12}s`,
@@ -893,6 +901,52 @@ const shipConfettiPieces = Array.from({ length: 36 }, (_, index) => ({
 	left: `${4 + ((index * 17) % 92)}%`,
 	spin: index % 2 === 0 ? "1turn" : "-1turn",
 }));
+
+function getCountdownParts(): CountdownParts {
+	const remainingMs = Math.max(0, submissionDeadline.getTime() - Date.now());
+	const totalSeconds = Math.floor(remainingMs / 1000);
+	const days = Math.floor(totalSeconds / 86_400);
+	const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+	const minutes = Math.floor((totalSeconds % 3_600) / 60);
+	const seconds = totalSeconds % 60;
+
+	return { days, hours, minutes, seconds };
+}
+
+function DeadlineCountdown() {
+	const [countdownParts, setCountdownParts] = useState(getCountdownParts);
+	const isDue =
+		countdownParts.days === 0 &&
+		countdownParts.hours === 0 &&
+		countdownParts.minutes === 0 &&
+		countdownParts.seconds === 0;
+	const visualCountdown = `${countdownParts.days} days · ${countdownParts.hours} hrs · ${countdownParts.minutes} min`;
+
+	useEffect(() => {
+		const intervalId = window.setInterval(() => {
+			setCountdownParts(getCountdownParts());
+		}, 1000);
+
+		return () => window.clearInterval(intervalId);
+	}, []);
+
+	if (isDue) {
+		return <strong className="deadline-countdown">submissions due</strong>;
+	}
+
+	return (
+		<strong className="deadline-countdown">
+			<span className="deadline-countdown-copy">
+				Submissions due in {countdownParts.days} days, {countdownParts.hours}{" "}
+				hours, {countdownParts.minutes} minutes, and {countdownParts.seconds}{" "}
+				seconds
+			</span>
+			<span aria-hidden="true" className="deadline-countdown-digits">
+				{visualCountdown}
+			</span>
+		</strong>
+	);
+}
 
 export default function Home() {
 	const utils = api.useUtils();
@@ -2390,8 +2444,8 @@ export default function Home() {
 											</strong>
 										</div>
 										<div>
-											<span>deadline</span>
-											<strong>July 31</strong>
+											<span>submissions close in</span>
+											<DeadlineCountdown />
 										</div>
 									</div>
 									<section

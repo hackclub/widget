@@ -1148,19 +1148,51 @@ button {
 }
 
 .eligibility-strip > div:last-child {
+	align-items: flex-start;
+	flex-direction: column;
+	gap: 3px;
+	min-width: min(100%, 246px);
 	border-color: #ffffff #606060 #606060 #ffffff;
 	border-style: solid;
 	border-width: 2px;
 	background: #ffdf34;
-	padding: 4px 7px;
+	padding: 7px 11px;
 	box-shadow: inset 1px 1px 0 #fff7a8;
+}
+
+.eligibility-strip > div:last-child span {
+	font-size: 0.58rem;
+	line-height: 1;
 }
 
 .eligibility-strip > div:last-child strong {
 	color: #001a66;
-	font-family: Impact, "Arial Black", var(--font-geist-sans), sans-serif;
-	font-size: clamp(0.98rem, 1.5vw, 1.18rem);
+	font-family: var(--font-geist-sans), Tahoma, Verdana, Arial, sans-serif;
+	font-size: clamp(0.9rem, 1.1vw, 1.05rem);
+	font-weight: 950;
 	letter-spacing: 0;
+}
+
+.deadline-countdown {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	white-space: nowrap;
+}
+
+.deadline-countdown-copy {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
+.deadline-countdown-digits {
+	display: inline-block;
+	min-width: 20ch;
+	text-align: left;
 }
 
 .primary-retro {
